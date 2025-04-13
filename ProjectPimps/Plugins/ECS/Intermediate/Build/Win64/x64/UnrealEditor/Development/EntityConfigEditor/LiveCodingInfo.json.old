@@ -1,0 +1,9 @@
+{
+	"RemapUnityFiles": 
+	{
+		"Module.EntityConfigEditor.cpp.obj": [
+			"PerModuleInline.gen.cpp.obj",
+			"EntityConfigEditor.cpp.obj"
+		]
+	}
+}

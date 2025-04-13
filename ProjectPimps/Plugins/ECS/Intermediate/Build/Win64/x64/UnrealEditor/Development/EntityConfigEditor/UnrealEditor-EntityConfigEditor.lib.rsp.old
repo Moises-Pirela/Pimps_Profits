@@ -1,0 +1,13 @@
+/NOLOGO
+/errorReport:prompt
+/MACHINE:x64
+/SUBSYSTEM:WINDOWS
+/DEF
+/NAME:"UnrealEditor-EntityConfigEditor.dll"
+/IGNORE:4221
+/NODEFAULTLIB
+"C:\Repos\NecrotekLabs\Pimps_Profits\ProjectPimps\Intermediate\Build\Win64\x64\ProjectPimpsEditor\Development\UnrealEd\SharedPCH.UnrealEd.Project.ValApi.Cpp20.h.obj"
+"C:\Repos\NecrotekLabs\Pimps_Profits\ProjectPimps\Plugins\ECS\Intermediate\Build\Win64\x64\UnrealEditor\Development\EntityConfigEditor\Module.EntityConfigEditor.cpp.obj"
+"C:\Repos\NecrotekLabs\Pimps_Profits\ProjectPimps\Plugins\ECS\Intermediate\Build\Win64\x64\UnrealEditor\Development\EntityConfigEditor\EntityConfigEditor.cpp.obj"
+"C:\Repos\NecrotekLabs\Pimps_Profits\ProjectPimps\Plugins\ECS\Intermediate\Build\Win64\x64\UnrealEditor\Development\EntityConfigEditor\Default.rc2.res"
+/OUT:"C:\Repos\NecrotekLabs\Pimps_Profits\ProjectPimps\Plugins\ECS\Intermediate\Build\Win64\x64\UnrealEditor\Development\EntityConfigEditor\UnrealEditor-EntityConfigEditor.lib"

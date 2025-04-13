@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <None Include="..\..\ProjectPimps.uproject" />
+    <Filter Include="Source">
+      <UniqueIdentifier>{F31BBDD1-B3E8-3BCC-9652-680E16935819}</UniqueIdentifier>
+    </Filter>
+    <None Include="..\..\Source\ProjectPimps.Target.cs">
+      <Filter>Source</Filter>
+    </None>
+    <None Include="..\..\Source\ProjectPimpsEditor.Target.cs">
+      <Filter>Source</Filter>
+    </None>
+    <None Include="..\..\.vsconfig" />
+    <Filter Include="Config">
+      <UniqueIdentifier>{FA535FFB-25E1-3D20-B416-52F9BE21E06E}</UniqueIdentifier>
+    </Filter>
+    <None Include="..\..\Config\DefaultEditor.ini">
+      <Filter>Config</Filter>
+    </None>
+    <None Include="..\..\Config\DefaultEditorPerProjectUserSettings.ini">
+      <Filter>Config</Filter>
+    </None>
+    <None Include="..\..\Config\DefaultEngine.ini">
+      <Filter>Config</Filter>
+    </None>
+    <None Include="..\..\Config\DefaultGame.ini">
+      <Filter>Config</Filter>
+    </None>
+    <None Include="..\..\Config\DefaultInput.ini">
+      <Filter>Config</Filter>
+    </None>
+    <Filter Include="Plugins">
+      <UniqueIdentifier>{BB38096A-B391-30DC-A0D4-4F3EA6B44507}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Plugins\ECS">
+      <UniqueIdentifier>{C4A7597F-0B95-383C-8823-AB79110B9370}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Plugins\ECS\Source">
+      <UniqueIdentifier>{5F3483EA-839C-338B-9590-980F70F170AF}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Plugins\ECS\Source\ECS">
+      <UniqueIdentifier>{F758C982-1433-3F5B-A32B-E36D121E737C}</UniqueIdentifier>
+    </Filter>
+    <None Include="..\..\Plugins\ECS\Source\ECS\ECS.Build.cs">
+      <Filter>Plugins\ECS\Source\ECS</Filter>
+    </None>
+    <Filter Include="Plugins\ECS\Source\ECS\Private">
+      <UniqueIdentifier>{7F381D38-F89D-3DAE-BD5E-D7EE3586604B}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Plugins\ECS\Source\ECS\Private\ECS.cpp">
+      <Filter>Plugins\ECS\Source\ECS\Private</Filter>
+    </ClCompile>
+    <Filter Include="Plugins\ECS\Source\ECS\Public">
+      <UniqueIdentifier>{CF8F7EF6-E7AA-35D7-9D59-A4C3E407726E}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Plugins\ECS\Source\ECS\Public\ECS.h">
+      <Filter>Plugins\ECS\Source\ECS\Public</Filter>
+    </ClCompile>
+    <None Include="..\..\Plugins\ECS\ECS.uplugin">
+      <Filter>Plugins\ECS</Filter>
+    </None>
+    <Filter Include="Plugins\ECS\Resources">
+      <UniqueIdentifier>{8F7B1C73-BF30-3B80-A057-6E58D3833860}</UniqueIdentifier>
+    </Filter>
+    <None Include="..\..\Plugins\ECS\Resources\Icon128.png">
+      <Filter>Plugins\ECS\Resources</Filter>
+    </None>
+    <Filter Include="Source\ProjectPimps">
+      <UniqueIdentifier>{51A0821D-A4E4-3BA2-95C8-ED71CDAD1808}</UniqueIdentifier>
+    </Filter>
+    <None Include="..\..\Source\ProjectPimps\ProjectPimps.Build.cs">
+      <Filter>Source\ProjectPimps</Filter>
+    </None>
+    <ClCompile Include="..\..\Source\ProjectPimps\ProjectPimps.cpp">
+      <Filter>Source\ProjectPimps</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\ProjectPimps\ProjectPimps.h">
+      <Filter>Source\ProjectPimps</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\ProjectPimps\ProjectPimpsCharacter.cpp">
+      <Filter>Source\ProjectPimps</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\ProjectPimps\ProjectPimpsCharacter.h">
+      <Filter>Source\ProjectPimps</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\ProjectPimps\ProjectPimpsGameMode.cpp">
+      <Filter>Source\ProjectPimps</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\ProjectPimps\ProjectPimpsGameMode.h">
+      <Filter>Source\ProjectPimps</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

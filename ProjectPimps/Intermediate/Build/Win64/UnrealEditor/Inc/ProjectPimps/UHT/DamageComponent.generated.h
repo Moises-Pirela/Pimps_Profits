@@ -1,0 +1,64 @@
+// Copyright Epic Games, Inc. All Rights Reserved.
+/*===========================================================================
+	Generated code exported from UnrealHeaderTool.
+	DO NOT modify this manually! Edit the corresponding .h files instead!
+===========================================================================*/
+
+// IWYU pragma: private, include "Core/Components/DamageComponent.h"
+#include "UObject/ObjectMacros.h"
+#include "UObject/ScriptMacros.h"
+
+PRAGMA_DISABLE_DEPRECATION_WARNINGS
+#ifdef PROJECTPIMPS_DamageComponent_generated_h
+#error "DamageComponent.generated.h already included, missing '#pragma once' in DamageComponent.h"
+#endif
+#define PROJECTPIMPS_DamageComponent_generated_h
+
+#define FID_Repos_NecrotekLabs_Pimps_Profits_ProjectPimps_Source_ProjectPimps_Core_Components_DamageComponent_h_12_GENERATED_BODY \
+	friend struct Z_Construct_UScriptStruct_FDamageComponent_Statics; \
+	PROJECTPIMPS_API static class UScriptStruct* StaticStruct(); \
+	typedef FEntityComponent Super;
+
+
+template<> PROJECTPIMPS_API UScriptStruct* StaticStruct<struct FDamageComponent>();
+
+#define FID_Repos_NecrotekLabs_Pimps_Profits_ProjectPimps_Source_ProjectPimps_Core_Components_DamageComponent_h_20_INCLASS_NO_PURE_DECLS \
+private: \
+	static void StaticRegisterNativesUDamageComponentConfig(); \
+	friend struct Z_Construct_UClass_UDamageComponentConfig_Statics; \
+public: \
+	DECLARE_CLASS(UDamageComponentConfig, UEntityComponentConfigBase, COMPILED_IN_FLAGS(0), CASTCLASS_None, TEXT("/Script/ProjectPimps"), NO_API) \
+	DECLARE_SERIALIZER(UDamageComponentConfig)
+
+
+#define FID_Repos_NecrotekLabs_Pimps_Profits_ProjectPimps_Source_ProjectPimps_Core_Components_DamageComponent_h_20_ENHANCED_CONSTRUCTORS \
+	/** Standard constructor, called after all reflected properties have been initialized */ \
+	NO_API UDamageComponentConfig(); \
+private: \
+	/** Private move- and copy-constructors, should never be used */ \
+	UDamageComponentConfig(UDamageComponentConfig&&); \
+	UDamageComponentConfig(const UDamageComponentConfig&); \
+public: \
+	DECLARE_VTABLE_PTR_HELPER_CTOR(NO_API, UDamageComponentConfig); \
+	DEFINE_VTABLE_PTR_HELPER_CTOR_CALLER(UDamageComponentConfig); \
+	DEFINE_DEFAULT_CONSTRUCTOR_CALL(UDamageComponentConfig) \
+	NO_API virtual ~UDamageComponentConfig();
+
+
+#define FID_Repos_NecrotekLabs_Pimps_Profits_ProjectPimps_Source_ProjectPimps_Core_Components_DamageComponent_h_17_PROLOG
+#define FID_Repos_NecrotekLabs_Pimps_Profits_ProjectPimps_Source_ProjectPimps_Core_Components_DamageComponent_h_20_GENERATED_BODY \
+PRAGMA_DISABLE_DEPRECATION_WARNINGS \
+public: \
+	FID_Repos_NecrotekLabs_Pimps_Profits_ProjectPimps_Source_ProjectPimps_Core_Components_DamageComponent_h_20_INCLASS_NO_PURE_DECLS \
+	FID_Repos_NecrotekLabs_Pimps_Profits_ProjectPimps_Source_ProjectPimps_Core_Components_DamageComponent_h_20_ENHANCED_CONSTRUCTORS \
+private: \
+PRAGMA_ENABLE_DEPRECATION_WARNINGS
+
+
+template<> PROJECTPIMPS_API UClass* StaticClass<class UDamageComponentConfig>();
+
+#undef CURRENT_FILE_ID
+#define CURRENT_FILE_ID FID_Repos_NecrotekLabs_Pimps_Profits_ProjectPimps_Source_ProjectPimps_Core_Components_DamageComponent_h
+
+
+PRAGMA_ENABLE_DEPRECATION_WARNINGS

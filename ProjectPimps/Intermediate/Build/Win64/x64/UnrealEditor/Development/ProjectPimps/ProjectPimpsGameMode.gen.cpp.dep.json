@@ -1,0 +1,19 @@
+{
+    "Version": "1.2",
+    "Data": {
+        "Source": "c:\\repos\\necroteklabs\\pimps_profits\\projectpimps\\intermediate\\build\\win64\\unrealeditor\\inc\\projectpimps\\uht\\projectpimpsgamemode.gen.cpp",
+        "ProvidedModule": "",
+        "PCH": "c:\\repos\\necroteklabs\\pimps_profits\\projectpimps\\intermediate\\build\\win64\\x64\\projectpimpseditor\\development\\unrealed\\sharedpch.unrealed.project.valapi.cpp20.h.pch",
+        "Includes": [
+            "c:\\repos\\necroteklabs\\pimps_profits\\projectpimps\\intermediate\\build\\win64\\x64\\unrealeditor\\development\\projectpimps\\definitions.projectpimps.h",
+            "c:\\repos\\necroteklabs\\pimps_profits\\projectpimps\\source\\projectpimps\\projectpimpsgamemode.h",
+            "c:\\program files\\epic games\\ue_5.5\\engine\\source\\runtime\\engine\\classes\\gameframework\\gamemodebase.h",
+            "c:\\program files\\epic games\\ue_5.5\\engine\\source\\runtime\\engine\\classes\\engine\\serverstatreplicator.h",
+            "c:\\program files\\epic games\\ue_5.5\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\engine\\uht\\serverstatreplicator.generated.h",
+            "c:\\program files\\epic games\\ue_5.5\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\engine\\uht\\gamemodebase.generated.h",
+            "c:\\repos\\necroteklabs\\pimps_profits\\projectpimps\\intermediate\\build\\win64\\unrealeditor\\inc\\projectpimps\\uht\\projectpimpsgamemode.generated.h"
+        ],
+        "ImportedModules": [],
+        "ImportedHeaderUnits": []
+    }
+}

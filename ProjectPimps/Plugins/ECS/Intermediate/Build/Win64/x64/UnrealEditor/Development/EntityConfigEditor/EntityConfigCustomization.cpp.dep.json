@@ -1,0 +1,28 @@
+{
+    "Version": "1.2",
+    "Data": {
+        "Source": "c:\\repos\\necroteklabs\\pimps_profits\\projectpimps\\plugins\\ecs\\source\\entityconfigeditor\\entityconfigcustomization.cpp",
+        "ProvidedModule": "",
+        "PCH": "c:\\repos\\necroteklabs\\pimps_profits\\projectpimps\\intermediate\\build\\win64\\x64\\projectpimpseditor\\development\\unrealed\\sharedpch.unrealed.project.valapi.cpp20.h.pch",
+        "Includes": [
+            "c:\\repos\\necroteklabs\\pimps_profits\\projectpimps\\plugins\\ecs\\intermediate\\build\\win64\\x64\\unrealeditor\\development\\entityconfigeditor\\definitions.entityconfigeditor.h",
+            "c:\\repos\\necroteklabs\\pimps_profits\\projectpimps\\plugins\\ecs\\source\\entityconfigeditor\\entityconfigcustomization.h",
+            "c:\\program files\\epic games\\ue_5.5\\engine\\source\\editor\\propertyeditor\\public\\idetailcustomization.h",
+            "c:\\program files\\epic games\\ue_5.5\\engine\\source\\editor\\propertyeditor\\public\\detailcategorybuilder.h",
+            "c:\\program files\\epic games\\ue_5.5\\engine\\source\\editor\\propertyeditor\\public\\idetailcustomnodebuilder.h",
+            "c:\\program files\\epic games\\ue_5.5\\engine\\source\\editor\\propertyeditor\\public\\detailbuildertypes.h",
+            "c:\\program files\\epic games\\ue_5.5\\engine\\source\\editor\\propertyeditor\\public\\propertyeditorcopypaste.h",
+            "c:\\program files\\epic games\\ue_5.5\\engine\\source\\editor\\propertyeditor\\public\\detaillayoutbuilder.h",
+            "c:\\program files\\epic games\\ue_5.5\\engine\\source\\editor\\propertyeditor\\public\\idetailpropertyrow.h",
+            "c:\\program files\\epic games\\ue_5.5\\engine\\source\\editor\\propertyeditor\\public\\detailwidgetrow.h",
+            "c:\\repos\\necroteklabs\\pimps_profits\\projectpimps\\plugins\\ecs\\source\\ecs\\configs\\entitycomponentconfig.h",
+            "c:\\repos\\necroteklabs\\pimps_profits\\projectpimps\\plugins\\ecs\\source\\ecs\\core\\entitycomponent.h",
+            "c:\\repos\\necroteklabs\\pimps_profits\\projectpimps\\plugins\\ecs\\intermediate\\build\\win64\\unrealeditor\\inc\\ecs\\uht\\entitycomponent.generated.h",
+            "c:\\repos\\necroteklabs\\pimps_profits\\projectpimps\\plugins\\ecs\\intermediate\\build\\win64\\unrealeditor\\inc\\ecs\\uht\\entitycomponentconfig.generated.h",
+            "c:\\repos\\necroteklabs\\pimps_profits\\projectpimps\\plugins\\ecs\\source\\ecs\\configs\\entityconfig.h",
+            "c:\\repos\\necroteklabs\\pimps_profits\\projectpimps\\plugins\\ecs\\intermediate\\build\\win64\\unrealeditor\\inc\\ecs\\uht\\entityconfig.generated.h"
+        ],
+        "ImportedModules": [],
+        "ImportedHeaderUnits": []
+    }
+}

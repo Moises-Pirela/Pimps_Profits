@@ -1,0 +1,14 @@
+{
+	"Targets": [
+		{
+			"Name": "ProjectPimps",
+			"Path": "..\\Source\\ProjectPimps.Target.cs",
+			"Type": "Game"
+		},
+		{
+			"Name": "ProjectPimpsEditor",
+			"Path": "..\\Source\\ProjectPimpsEditor.Target.cs",
+			"Type": "Editor"
+		}
+	]
+}
