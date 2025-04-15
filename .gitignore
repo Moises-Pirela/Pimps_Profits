@@ -74,3 +74,5 @@ ProjectPimps/Plugins/*/Intermediate/*
 ProjectPimps/DerivedDataCache/*
 /ProjectPimps/Binaries
 /ProjectPimps/.idea
+/PnP/Intermediate
+/PnP/Saved
