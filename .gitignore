@@ -76,3 +76,6 @@ ProjectPimps/DerivedDataCache/*
 /ProjectPimps/.idea
 /PnP/Intermediate
 /PnP/Saved
+/PnP/Binaries
+/PnP/.idea
+PnP/.vsconfig
