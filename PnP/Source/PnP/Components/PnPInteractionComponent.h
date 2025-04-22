@@ -18,7 +18,43 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-public:
-	virtual void TickComponent(float delta_time, ELevelTick tick_type,
-	                           FActorComponentTickFunction* this_tick_function) override;
+	// Interaction parameters
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction")
+	float m_interactionRange;
+    
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction")
+	float m_interactionSphereRadius;
+    
+	// Currently focused interactive object
+	UPROPERTY(Replicated)
+	AActor* m_focusedInteractiveObject;
+    
+	// Is interaction in progress
+	UPROPERTY(ReplicatedUsing = OnRep_InteractionInProgress)
+	bool bInteractionInProgress;
+    
+	UFUNCTION()
+	void OnRep_InteractionInProgress();
+    
+	// Trace for interactive objects
+	void PerformInteractionTrace();
+
+public:    
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+    
+	// Override GetLifetimeReplicatedProps to setup replication
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+    
+	// Start interaction with focused object
+	void BeginInteraction();
+    
+	// End interaction with focused object
+	void EndInteraction();
+    
+	// Server RPC to handle interaction on server
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerBeginInteraction();
+    
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerEndInteraction();
 };

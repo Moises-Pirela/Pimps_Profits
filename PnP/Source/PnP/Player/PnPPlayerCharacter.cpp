@@ -27,26 +27,26 @@ APnPPlayerCharacter::APnPPlayerCharacter()
 	GetCharacterMovement()->JumpZVelocity = 400.0f;
 	GetCharacterMovement()->AirControl = 0.2f;
 
-	m_cameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
-	m_cameraBoom->SetupAttachment(RootComponent);
-	m_cameraBoom->TargetArmLength = 300.0f;
-	m_cameraBoom->bUsePawnControlRotation = true;
-	m_cameraBoom->SocketOffset = FVector(0.0f, 80.0f, 65.0f);
-	m_cameraBoom->bEnableCameraLag = true;
-	m_cameraBoom->CameraLagSpeed = 15.0f;
+	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
+	CameraBoom->SetupAttachment(RootComponent);
+	CameraBoom->TargetArmLength = 300.0f;
+	CameraBoom->bUsePawnControlRotation = true;
+	CameraBoom->SocketOffset = FVector(0.0f, 80.0f, 65.0f);
+	CameraBoom->bEnableCameraLag = true;
+	CameraBoom->CameraLagSpeed = 15.0f;
 
-	m_followCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
-	m_followCamera->SetupAttachment(m_cameraBoom, USpringArmComponent::SocketName);
-	m_followCamera->bUsePawnControlRotation = false;
+	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
+	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
+	FollowCamera->bUsePawnControlRotation = false;
 
-	m_statsComponent = CreateDefaultSubobject<UPnPCharacterStatsComponent>(TEXT("StatsComponent"));
-	m_inventoryComponent = CreateDefaultSubobject<UPnPInventoryComponent>(TEXT("InventoryComponent"));
-	m_interactionComponent = CreateDefaultSubobject<UPnPInteractionComponent>(TEXT("InteractionComponent"));
-	m_businessComponent = CreateDefaultSubobject<UPnPBusinessManagerComponent>(TEXT("BusinessComponent"));
-	m_networkComponent = CreateDefaultSubobject<UPnPNetworkIdentityComponent>(TEXT("NetworkComponent"));
+	StatsComponent = CreateDefaultSubobject<UPnPCharacterStatsComponent>(TEXT("StatsComponent"));
+	InventoryComponent = CreateDefaultSubobject<UPnPInventoryComponent>(TEXT("InventoryComponent"));
+	InteractionComponent = CreateDefaultSubobject<UPnPInteractionComponent>(TEXT("InteractionComponent"));
+	BusinessComponent = CreateDefaultSubobject<UPnPBusinessManagerComponent>(TEXT("BusinessComponent"));
+	NetworkComponent = CreateDefaultSubobject<UPnPNetworkIdentityComponent>(TEXT("NetworkComponent"));
 
 	bReplicates = true;
-	
+
 	ACharacter::SetReplicateMovement(true);
 }
 
@@ -57,159 +57,211 @@ void APnPPlayerCharacter::BeginPlay()
 
 void APnPPlayerCharacter::OnRep_CharacterState()
 {
-	bool bIsSprinting = (m_characterState & (1 << 0)) != 0;
-    
+	bool bIsSprinting = CharacterState == MOTION_SPRINT;
+
 	GetCharacterMovement()->MaxWalkSpeed = bIsSprinting ? 600.0f : 400.0f;
 }
 
-void APnPPlayerCharacter::Tick(const float delta_time)
+void APnPPlayerCharacter::OnRep_CharacterAimState()
 {
-	Super::Tick(delta_time);
+	GetCharacterMovement()->MaxWalkSpeed = 300.0f;
 }
 
-void APnPPlayerCharacter::Move(const FInputActionValue& Value)
+void APnPPlayerCharacter::Tick(const float pDeltaTime)
 {
-    if (Controller != nullptr)
-    {
-        // Get movement vector from the input value
-        const FVector2D MovementVector = Value.Get<FVector2D>();
-        
-        // Find out which way is forward/right
-        const FRotator Rotation = Controller->GetControlRotation();
-        const FRotator YawRotation(0, Rotation.Yaw, 0);
-        
-        // Get forward vector
-        const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-        // Get right vector
-        const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-        
-        // Add movement inputs
-        AddMovementInput(ForwardDirection, MovementVector.Y);
-        AddMovementInput(RightDirection, MovementVector.X);
-    }
-}
+	Super::Tick(pDeltaTime);
 
-void APnPPlayerCharacter::Look(const FInputActionValue& Value)
-{
-    if (Controller != nullptr)
-    {
-        // Get look vector from the input value
-        const FVector2D LookAxisVector = Value.Get<FVector2D>();
-        
-        // Apply yaw and pitch inputs
-        AddControllerYawInput(LookAxisVector.X);
-        AddControllerPitchInput(LookAxisVector.Y);
-    }
-}
+	float finalMoveSpeed = 400.0f;
 
-void APnPPlayerCharacter::Interact(const FInputActionValue& Value)
-{
-    // Delegate to interaction component
-    if (m_interactionComponent)
-    {
-        // Value.GetValueType() can be used to determine if pressed or released
-        if (Value.GetValueType() == EInputActionValueType::Boolean && Value.Get<bool>())
-        {
-           // m_interactionComponent->BeginInteraction();
-        }
-        else
-        {
-            //m_interactionComponent->EndInteraction();
-        }
-    }
-}
+	if (CharacterState == MOTION_SPRINT)
+		finalMoveSpeed = 800.0f;
 
-void APnPPlayerCharacter::ToggleSprint(const FInputActionValue& Value)
-{
-    bool bShouldSprint = Value.Get<bool>();
-    
-    // Set appropriate movement speed
-    GetCharacterMovement()->MaxWalkSpeed = bShouldSprint ? 600.0f : 400.0f;
-    
-    // Update character state
-    if (GetLocalRole() == ROLE_Authority)
-    {
-        if (bShouldSprint)
-        {
-            m_characterState |= (1 << 0); // Set sprint bit
-        }
-        else
-        {
-            m_characterState &= ~(1 << 0); // Clear sprint bit
-        }
-    }
-    else
-    {
-        uint8 NewState = bShouldSprint ? (m_characterState | (1 << 0)) : (m_characterState & ~(1 << 0));
-        ServerSetCharacterState(NewState);
-    }
-}
-
-void APnPPlayerCharacter::Zoom(const FInputActionValue& Value)
-{
-    float _zoom_value = Value.Get<float>();
-    
-    if (_zoom_value != 0.0f)
-    {
-        float _new_target_arm_length = m_cameraBoom->TargetArmLength - (_zoom_value * 50.0f);
-        m_cameraBoom->TargetArmLength = FMath::Clamp(_new_target_arm_length, 150.0f, 450.0f);
-    }
-}
-
-void APnPPlayerCharacter::SetupPlayerInputComponent(UInputComponent* player_input_component)
-{
-	Super::SetupPlayerInputComponent(player_input_component);
-
-	APlayerController* _player_controller = Cast<APlayerController>(GetController());
-	if (_player_controller)
+	float targetArmLength = 0;
+	if (CharacterAimState == AIM_FOCUSED)
 	{
-		UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(_player_controller->GetLocalPlayer());
-		if (Subsystem)
+		targetArmLength = 100;
+		GetCharacterMovement()->bOrientRotationToMovement = false;
+		GetCharacterMovement()->bUseControllerDesiredRotation = true;
+		finalMoveSpeed *= 0.35f;
+	}
+	else
+	{
+		targetArmLength = 500;
+		GetCharacterMovement()->bOrientRotationToMovement = true;
+		GetCharacterMovement()->bUseControllerDesiredRotation = false;
+	}
+
+	if (GetCharacterMovement()->MovementMode == EMovementMode::MOVE_Falling)
+	{
+		GetCharacterMovement()->bOrientRotationToMovement = false;
+	}
+	
+	CameraBoom->TargetArmLength = FMath::Lerp(CameraBoom->TargetArmLength, targetArmLength, pDeltaTime * 10.0f); ;
+
+	GetCharacterMovement()->MaxWalkSpeed = finalMoveSpeed;
+}
+
+void APnPPlayerCharacter::Move(const FInputActionValue& pValue)
+{
+	if (Controller != nullptr)
+	{
+		const FVector2D Movement_Vector = pValue.Get<FVector2D>();
+
+		const FRotator Rotation = Controller->GetControlRotation();
+		const FRotator Yaw_Rotation(0, Rotation.Yaw, 0);
+
+		const FVector Forward_Direction = FRotationMatrix(Yaw_Rotation).GetUnitAxis(EAxis::X);
+		const FVector Right_Direction = FRotationMatrix(Yaw_Rotation).GetUnitAxis(EAxis::Y);
+
+		AddMovementInput(Forward_Direction, Movement_Vector.Y);
+		AddMovementInput(Right_Direction, Movement_Vector.X);
+	}
+}
+
+void APnPPlayerCharacter::Look(const FInputActionValue& pValue)
+{
+	if (Controller != nullptr)
+	{
+		const FVector2D _look_axis_vector = pValue.Get<FVector2D>();
+
+		AddControllerYawInput(_look_axis_vector.X);
+		AddControllerPitchInput(_look_axis_vector.Y);
+	}
+}
+
+void APnPPlayerCharacter::Interact(const FInputActionValue& pValue)
+{
+	if (InteractionComponent)
+	{
+		if (pValue.GetValueType() == EInputActionValueType::Boolean && pValue.Get<bool>())
 		{
-			Subsystem->ClearAllMappings();
-			Subsystem->AddMappingContext(DefaultMappingContext, 0);
+			InteractionComponent->BeginInteraction();
+		}
+		else
+		{
+			InteractionComponent->EndInteraction();
 		}
 	}
-    
-	UEnhancedInputComponent* _enhanced_input_component = CastChecked<UEnhancedInputComponent>(player_input_component);
-	if (_enhanced_input_component)
+}
+
+void APnPPlayerCharacter::ToggleSprint(const FInputActionValue& pValue)
+{
+	bool bShould_Sprint = CharacterState != MOTION_SPRINT;
+
+	GetCharacterMovement()->MaxWalkSpeed = bShould_Sprint ? 1600.0f : 400.0f;
+
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		if (bShould_Sprint)
+		{
+			CharacterState = MOTION_SPRINT;
+		}
+		else
+		{
+			CharacterState = MOTION_IDLE;
+		}
+	}
+	else
+	{
+		ECharacterLocomotionState _new_state = bShould_Sprint ? MOTION_SPRINT : MOTION_WALK;
+		ServerSetCharacterState(_new_state);
+	}
+}
+
+void APnPPlayerCharacter::Aim(const FInputActionValue& pValue)
+{
+	if (GetLocalRole() == ROLE_Authority)
+	{
+			CharacterAimState = AIM_FOCUSED;
+	}
+	else
+	{
+		ServerSetCharacterAimState(AIM_FOCUSED);
+	}
+}
+
+void APnPPlayerCharacter::CancelAim(const FInputActionValue& pValue)
+{
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		CharacterAimState = AIM_NONE;
+	}
+	else
+	{
+		ServerSetCharacterAimState(AIM_NONE);
+	}
+}
+
+void APnPPlayerCharacter::SetupPlayerInputComponent(UInputComponent* pPlayerInputComponent)
+{
+	Super::SetupPlayerInputComponent(pPlayerInputComponent);
+
+	if (APlayerController* _player_controller = Cast<APlayerController>(GetController()))
+	{
+		UEnhancedInputLocalPlayerSubsystem* _subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(
+			_player_controller->GetLocalPlayer());
+		if (_subsystem)
+		{
+			_subsystem->ClearAllMappings();
+			_subsystem->AddMappingContext(DefaultMappingContext, 0);
+		}
+	}
+
+	if (UEnhancedInputComponent* _enhanced_input_component = CastChecked<UEnhancedInputComponent>(pPlayerInputComponent))
 	{
 		// Movement
-		_enhanced_input_component->BindAction(m_moveAction, ETriggerEvent::Triggered, this, &APnPPlayerCharacter::Move);
-        
+		_enhanced_input_component->BindAction(MoveAction, ETriggerEvent::Triggered, this, &APnPPlayerCharacter::Move);
+
 		// Looking
-		_enhanced_input_component->BindAction(m_lookAction, ETriggerEvent::Triggered, this, &APnPPlayerCharacter::Look);
-        
+		_enhanced_input_component->BindAction(LookAction, ETriggerEvent::Triggered, this, &APnPPlayerCharacter::Look);
+
 		// Jumping
-		_enhanced_input_component->BindAction(m_jumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
-		_enhanced_input_component->BindAction(m_jumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
-        
+		_enhanced_input_component->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
+		_enhanced_input_component->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
+
 		// Interaction
-		_enhanced_input_component->BindAction(m_interactAction, ETriggerEvent::Started, this, &APnPPlayerCharacter::Interact);
-        
+		_enhanced_input_component->BindAction(InteractAction, ETriggerEvent::Started, this,
+		                                      &APnPPlayerCharacter::Interact);
+
 		// Sprinting
-		_enhanced_input_component->BindAction(m_sprintAction, ETriggerEvent::Started, this, &APnPPlayerCharacter::ToggleSprint);
-		_enhanced_input_component->BindAction(m_sprintAction, ETriggerEvent::Completed, this, &APnPPlayerCharacter::ToggleSprint);
-        
-		// Zooming
-		_enhanced_input_component->BindAction(m_zoomAction, ETriggerEvent::Triggered, this, &APnPPlayerCharacter::Zoom);
+		_enhanced_input_component->BindAction(SprintAction, ETriggerEvent::Started, this,
+		                                      &APnPPlayerCharacter::ToggleSprint);
+		_enhanced_input_component->BindAction(SprintAction, ETriggerEvent::Completed, this,
+		                                      &APnPPlayerCharacter::ToggleSprint);
+
+		// Aiming
+		_enhanced_input_component->BindAction(AimAction, ETriggerEvent::Started, this, &APnPPlayerCharacter::Aim);
+		_enhanced_input_component->BindAction(AimAction, ETriggerEvent::Completed, this, &APnPPlayerCharacter::CancelAim);
+
+		// Primary Fire
+		//_enhanced_input_component->BindAction(m_aimAction, ETriggerEvent::Triggered, this, &APnPPlayerCharacter::Aim);
+		//_enhanced_input_component->BindAction(m_aimAction, ETriggerEvent::Completed, this, &APnPPlayerCharacter::Aim);
 	}
 }
 
 void APnPPlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	
-	DOREPLIFETIME(APnPPlayerCharacter, m_characterState);
+
+	DOREPLIFETIME(APnPPlayerCharacter, CharacterState);
 }
 
-void APnPPlayerCharacter::ServerSetCharacterState_Implementation(uint8 new_state)
+void APnPPlayerCharacter::ServerSetCharacterState_Implementation(const ECharacterLocomotionState pNewState)
 {
-	m_characterState = new_state;
+	CharacterState = pNewState;
 }
 
-bool APnPPlayerCharacter::ServerSetCharacterState_Validate(uint8 new_state)
+bool APnPPlayerCharacter::ServerSetCharacterState_Validate(ECharacterLocomotionState pNewState)
 {
 	return true;
 }
 
+void APnPPlayerCharacter::ServerSetCharacterAimState_Implementation(const ECharacterAimState pNewState)
+{
+	CharacterAimState = pNewState;
+}
+
+bool APnPPlayerCharacter::ServerSetCharacterAimState_Validate(ECharacterAimState pNewState)
+{
+	return true;
+}

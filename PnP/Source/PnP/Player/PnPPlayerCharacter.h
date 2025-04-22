@@ -14,6 +14,21 @@
 #include "PnP/Components/PnPNetworkIdentityComponent.h"
 #include "PnPPlayerCharacter.generated.h"
 
+UENUM(BlueprintType)
+enum ECharacterAimState : uint8
+{
+	AIM_NONE,
+	AIM_FOCUSED
+};
+
+UENUM(BlueprintType)
+enum ECharacterLocomotionState : uint8
+{
+	MOTION_IDLE,
+	MOTION_WALK,
+	MOTION_SPRINT,
+};
+
 UCLASS()
 class PNP_API APnPPlayerCharacter : public ACharacter
 {
@@ -26,78 +41,81 @@ protected:
 	virtual void BeginPlay() override;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	USpringArmComponent* m_cameraBoom;
-
+	USpringArmComponent* CameraBoom;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	UCameraComponent* m_followCamera;
+	UCameraComponent* FollowCamera;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PNP | Components", meta = (AllowPrivateAccess = "true"))
+	UPnPCharacterStatsComponent* StatsComponent;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PNP | Components", meta = (AllowPrivateAccess = "true"))
+	UPnPInventoryComponent* InventoryComponent;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PNP | Components", meta = (AllowPrivateAccess = "true"))
+	UPnPInteractionComponent* InteractionComponent;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PNP | Components", meta = (AllowPrivateAccess = "true"))
+	UPnPBusinessManagerComponent* BusinessComponent;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PNP | Components", meta = (AllowPrivateAccess = "true"))
+	UPnPNetworkIdentityComponent* NetworkComponent;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputMappingContext* DefaultMappingContext;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* MoveAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* LookAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* JumpAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* InteractAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* SprintAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* ZoomAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* AimAction;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PNP | Components", meta = (AllowPrivateAccess = "true"))
-	UPnPCharacterStatsComponent* m_statsComponent;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PNP | Components", meta = (AllowPrivateAccess = "true"))
-	UPnPInventoryComponent* m_inventoryComponent;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PNP | Components", meta = (AllowPrivateAccess = "true"))
-	UPnPInteractionComponent* m_interactionComponent;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PNP | Components", meta = (AllowPrivateAccess = "true"))
-	UPnPBusinessManagerComponent* m_businessComponent;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PNP | Components", meta = (AllowPrivateAccess = "true"))
-	UPnPNetworkIdentityComponent* m_networkComponent;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputMappingContext* DefaultMappingContext;
-    
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputAction* m_moveAction;
-    
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputAction* m_lookAction;
-    
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputAction* m_jumpAction;
-    
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputAction* m_interactAction;
-    
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputAction* m_sprintAction;
-    
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputAction* m_zoomAction;
-
-	void Move(const FInputActionValue& Value);
-	void Look(const FInputActionValue& Value);
-	void Interact(const FInputActionValue& Value);
-	void ToggleSprint(const FInputActionValue& Value);
-	void Zoom(const FInputActionValue& Value);
+	void Move(const FInputActionValue& pValue);
+	void Look(const FInputActionValue& pValue);
+	void Interact(const FInputActionValue& pValue);
+	void ToggleSprint(const FInputActionValue& pValue);
+	void Aim(const FInputActionValue& pValue);
+	void CancelAim(const FInputActionValue& pValue);
 
 	UPROPERTY(ReplicatedUsing = OnRep_CharacterState)
-	uint8 m_characterState;
-    
+	TEnumAsByte<ECharacterLocomotionState> CharacterState;
+
+	UPROPERTY(ReplicatedUsing = OnRep_CharacterAimState)
+	TEnumAsByte<ECharacterAimState> CharacterAimState;
+
 	UFUNCTION()
 	void OnRep_CharacterState();
 
-public:
-	virtual void Tick(float delta_time) override;
+	UFUNCTION()
+	void OnRep_CharacterAimState();
 
-	virtual void SetupPlayerInputComponent(class UInputComponent* player_input_component) override;
+public:
+	virtual void Tick(float pDeltaTime) override;
+
+	virtual void SetupPlayerInputComponent(class UInputComponent* pPlayerInputComponent) override;
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return m_cameraBoom; }
-    
-	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return m_followCamera; }
+	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
+
+	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
 	UFUNCTION(BlueprintCallable, Category = "Character")
-	UPnPCharacterStatsComponent* GetStatsComponent() const { return m_statsComponent; }
+	UPnPCharacterStatsComponent* GetStatsComponent() const { return StatsComponent; }
 
 	UFUNCTION(BlueprintCallable, Category = "Character")
-	UPnPInventoryComponent* GetInventoryComponent() const { return m_inventoryComponent; }
+	UPnPInventoryComponent* GetInventoryComponent() const { return InventoryComponent; }
 
 	UFUNCTION(BlueprintCallable, Category = "Character")
-	UPnPInteractionComponent* GetInteractionComponent() const { return m_interactionComponent; }
+	UPnPInteractionComponent* GetInteractionComponent() const { return InteractionComponent; }
 
 	UFUNCTION(BlueprintCallable, Category = "Character")
-	UPnPBusinessManagerComponent* GetBusinessComponent() const { return m_businessComponent; }
-	
+	UPnPBusinessManagerComponent* GetBusinessComponent() const { return BusinessComponent; }
+
 	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerSetCharacterState(uint8 new_state);
+	void ServerSetCharacterState(ECharacterLocomotionState pNewState);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerSetCharacterAimState(ECharacterAimState pNewState);
 };
