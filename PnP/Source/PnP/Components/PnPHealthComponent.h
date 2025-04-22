@@ -1,12 +1,18 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "PnPComponentBase.h"
-#include "Components/ActorComponent.h"
+#include "Net/UnrealNetwork.h"
 #include "PnPHealthComponent.generated.h"
 
+USTRUCT()
+struct FDamageEvent
+{
+	GENERATED_BODY()
+
+	int Damage;
+	int DamageDealerEntityId;
+};
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class PNP_API UPnPHealthComponent : public UPnPComponentBase
@@ -16,10 +22,24 @@ class PNP_API UPnPHealthComponent : public UPnPComponentBase
 public:
 	UPnPHealthComponent();
 
-protected:
-	virtual void BeginPlay() override;
+	TArray<FDamageEvent> PendingDamageEvents;
 
-public:
-	virtual void TickComponent(float delta_time, ELevelTick tick_type,
-	                           FActorComponentTickFunction* this_tick_function) override;
+	UPROPERTY(ReplicatedUsing=OnRep_CurrentHealth, BlueprintReadOnly)
+	float CurrentHealth;
+
+	UPROPERTY(Replicated, EditDefaultsOnly, BlueprintReadOnly)
+	float MaxHealth;
+
+	UFUNCTION(BlueprintCallable)
+	bool TakeDamage(float DamageAmount);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerTakeDamage(float DamageAmount);
+
+protected:
+    
+	UFUNCTION()
+	void OnRep_CurrentHealth(float OldHealth);
+    
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 };

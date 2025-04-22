@@ -3,6 +3,8 @@
 
 #include "UnrealEntity.h"
 
+#include "GameFramework/GameStateBase.h"
+#include "GameFramework/PlayerState.h"
 #include "PnP/Components/PnPComponentBase.h"
 
 
@@ -29,9 +31,28 @@ TArray<UPnPComponentBase*> UUnrealEntity::GetComponents() const
 	return components;
 }
 
+bool UUnrealEntity::HasAuthority()
+{
+	return GetOwner()->HasAuthority();
+}
+
 
 void UUnrealEntity::BeginPlay()
 {
 	Super::BeginPlay();
+
+	const bool bIsServer = GetOwner()->HasAuthority();
+	bIsRemoteEntity = !bIsServer;
+
+	if (AActor* owner = GetOwner())
+	{
+		if (APlayerController* pc = Cast<APlayerController>(owner->GetInstigatorController()))
+		{
+			if (APlayerState* ps = pc->PlayerState)
+			{
+				OwnerClientId = ps->GetPlayerId();
+			}
+		}
+	}
 }
 

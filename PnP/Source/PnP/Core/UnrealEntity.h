@@ -17,11 +17,19 @@ class PNP_API UUnrealEntity : public UActorComponent
 public:
 	UUnrealEntity();
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Entity, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(Replicated)
 	int EntityId;
+
+	UPROPERTY(Replicated)
+	int OwnerClientId;
+
+	UPROPERTY(Replicated)
+	bool bIsRemoteEntity;
 
 	UFUNCTION(BlueprintCallable)
 	TArray<UPnPComponentBase*> GetComponents() const;
+	
+	bool HasAuthority();
 
 	UPROPERTY()
 	FEntityFlags EntityFlags;

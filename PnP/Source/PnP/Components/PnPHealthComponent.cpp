@@ -3,27 +3,51 @@
 
 #include "PnPHealthComponent.h"
 
+#include "PnP/Core/UnrealEntity.h"
 
-// Sets default values for this component's properties
+
 UPnPHealthComponent::UPnPHealthComponent()
 {
+	MaxHealth = 100.0f;
+	CurrentHealth = MaxHealth;
 	PrimaryComponentTick.bCanEverTick = true;
-
 }
 
-
-void UPnPHealthComponent::BeginPlay()
+void UPnPHealthComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
-	Super::BeginPlay();
-
-	
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+    
+	DOREPLIFETIME(UPnPHealthComponent, CurrentHealth);
+	DOREPLIFETIME(UPnPHealthComponent, MaxHealth);
 }
 
-
-void UPnPHealthComponent::TickComponent(float delta_time, ELevelTick tick_type,
-                                        FActorComponentTickFunction* this_tick_function)
+bool UPnPHealthComponent::TakeDamage(float DamageAmount)
 {
-	Super::TickComponent(delta_time, tick_type, this_tick_function);
+	UUnrealEntity* entity = Cast<UUnrealEntity>(GetOwner()->GetComponentByClass(UUnrealEntity::StaticClass()));
+    
+	if (entity && !entity->HasAuthority())
+	{
+		CurrentHealth = FMath::Max(CurrentHealth - DamageAmount, 0.0f);
+		ServerTakeDamage(DamageAmount);
+		return true;
+	}
+    
+	CurrentHealth = FMath::Max(CurrentHealth - DamageAmount, 0.0f);
+	return true;
+}
 
+void UPnPHealthComponent::ServerTakeDamage_Implementation(float DamageAmount)
+{
+	CurrentHealth = FMath::Max(CurrentHealth - DamageAmount, 0.0f);
+}
+
+bool UPnPHealthComponent::ServerTakeDamage_Validate(float DamageAmount)
+{
+	return DamageAmount >= 0.0f;
+}
+
+void UPnPHealthComponent::OnRep_CurrentHealth(float OldHealth)
+{
+	//TODO: UPDATE UI, PLAY VFX, PLAY DAMAGE SOUND
 }
 
