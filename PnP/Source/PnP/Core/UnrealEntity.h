@@ -31,6 +31,8 @@ public:
 	
 	bool HasAuthority();
 
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+
 	UPROPERTY()
 	FEntityFlags EntityFlags;
 	UPROPERTY()

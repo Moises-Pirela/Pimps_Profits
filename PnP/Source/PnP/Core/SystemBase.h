@@ -2,7 +2,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "UObject/NoExportTypes.h"
 #include "PnP/Core/EntityStorage.h"
 #include "SystemBase.generated.h"
 
@@ -21,5 +20,5 @@ public:
    
 	virtual void PostProcess() {}
    
-	virtual bool HasAuthority(UUnrealEntity* Entity) const;
+	virtual bool HasAuthority(UUnrealEntity* Entity) const { return false;};
 };

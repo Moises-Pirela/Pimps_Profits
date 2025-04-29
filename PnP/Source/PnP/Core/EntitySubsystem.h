@@ -21,4 +21,5 @@ public:
 
 	virtual void Initialize(FSubsystemCollectionBase& pCollection) override;
 	virtual void Tick(float pDeltaTime) override;
+	virtual TStatId GetStatId() const override;
 };

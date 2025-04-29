@@ -57,48 +57,44 @@ void APnPPlayerCharacter::BeginPlay()
 
 void APnPPlayerCharacter::OnRep_CharacterState()
 {
-	bool bIsSprinting = CharacterState == MOTION_SPRINT;
-
-	GetCharacterMovement()->MaxWalkSpeed = bIsSprinting ? 600.0f : 400.0f;
 }
 
 void APnPPlayerCharacter::OnRep_CharacterAimState()
 {
-	GetCharacterMovement()->MaxWalkSpeed = 300.0f;
+	if (CharacterAimState == AIM_FOCUSED)
+	{
+		GetCharacterMovement()->bOrientRotationToMovement = false;
+		GetCharacterMovement()->bUseControllerDesiredRotation = true;
+	}
+	else
+	{
+		GetCharacterMovement()->bOrientRotationToMovement = true;
+		GetCharacterMovement()->bUseControllerDesiredRotation = false;
+	}
 }
 
 void APnPPlayerCharacter::Tick(const float pDeltaTime)
 {
 	Super::Tick(pDeltaTime);
 
-	float finalMoveSpeed = 400.0f;
-
-	if (CharacterState == MOTION_SPRINT)
-		finalMoveSpeed = 800.0f;
-
-	float targetArmLength = 0;
+	float finalMoveSpeed = (CharacterState == MOTION_SPRINT) ? 600.0f : 200.0f;
+	
 	if (CharacterAimState == AIM_FOCUSED)
 	{
-		targetArmLength = 100;
 		GetCharacterMovement()->bOrientRotationToMovement = false;
 		GetCharacterMovement()->bUseControllerDesiredRotation = true;
 		finalMoveSpeed *= 0.35f;
 	}
 	else
 	{
-		targetArmLength = 500;
 		GetCharacterMovement()->bOrientRotationToMovement = true;
 		GetCharacterMovement()->bUseControllerDesiredRotation = false;
 	}
-
-	if (GetCharacterMovement()->MovementMode == EMovementMode::MOVE_Falling)
-	{
-		GetCharacterMovement()->bOrientRotationToMovement = false;
-	}
-	
-	CameraBoom->TargetArmLength = FMath::Lerp(CameraBoom->TargetArmLength, targetArmLength, pDeltaTime * 10.0f); ;
-
+    
 	GetCharacterMovement()->MaxWalkSpeed = finalMoveSpeed;
+    
+	float targetArmLength = (CharacterAimState == AIM_FOCUSED) ? 100.0f : 500.0f;
+	CameraBoom->TargetArmLength = FMath::Lerp(CameraBoom->TargetArmLength, targetArmLength, pDeltaTime * 10.0f);
 }
 
 void APnPPlayerCharacter::Move(const FInputActionValue& pValue)
@@ -148,8 +144,6 @@ void APnPPlayerCharacter::ToggleSprint(const FInputActionValue& pValue)
 {
 	bool bShould_Sprint = CharacterState != MOTION_SPRINT;
 
-	GetCharacterMovement()->MaxWalkSpeed = bShould_Sprint ? 1600.0f : 400.0f;
-
 	if (GetLocalRole() == ROLE_Authority)
 	{
 		if (bShould_Sprint)
@@ -172,7 +166,7 @@ void APnPPlayerCharacter::Aim(const FInputActionValue& pValue)
 {
 	if (GetLocalRole() == ROLE_Authority)
 	{
-			CharacterAimState = AIM_FOCUSED;
+		CharacterAimState = AIM_FOCUSED;
 	}
 	else
 	{
@@ -244,6 +238,7 @@ void APnPPlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(APnPPlayerCharacter, CharacterState);
+	DOREPLIFETIME(APnPPlayerCharacter, CharacterAimState);
 }
 
 void APnPPlayerCharacter::ServerSetCharacterState_Implementation(const ECharacterLocomotionState pNewState)

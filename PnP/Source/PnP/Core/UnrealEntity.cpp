@@ -5,6 +5,7 @@
 
 #include "GameFramework/GameStateBase.h"
 #include "GameFramework/PlayerState.h"
+#include "Net/UnrealNetwork.h"
 #include "PnP/Components/PnPComponentBase.h"
 
 
@@ -34,6 +35,15 @@ TArray<UPnPComponentBase*> UUnrealEntity::GetComponents() const
 bool UUnrealEntity::HasAuthority()
 {
 	return GetOwner()->HasAuthority();
+}
+
+void UUnrealEntity::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(UUnrealEntity, EntityId);
+	DOREPLIFETIME(UUnrealEntity, bIsRemoteEntity);
+	DOREPLIFETIME(UUnrealEntity, OwnerClientId);
 }
 
 

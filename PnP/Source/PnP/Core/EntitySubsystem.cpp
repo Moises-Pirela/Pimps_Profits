@@ -12,3 +12,8 @@ void UEntitySubsystem::Tick(float pDeltaTime)
 {
 	Super::Tick(pDeltaTime);
 }
+
+TStatId UEntitySubsystem::GetStatId() const
+{
+	return TStatId();
+}

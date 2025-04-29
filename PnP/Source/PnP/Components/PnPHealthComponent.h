@@ -6,7 +6,7 @@
 #include "PnPHealthComponent.generated.h"
 
 USTRUCT()
-struct FDamageEvent
+struct FPnPDamageEvent
 {
 	GENERATED_BODY()
 
@@ -22,7 +22,7 @@ class PNP_API UPnPHealthComponent : public UPnPComponentBase
 public:
 	UPnPHealthComponent();
 
-	TArray<FDamageEvent> PendingDamageEvents;
+	TArray<FPnPDamageEvent> PendingDamageEvents;
 
 	UPROPERTY(ReplicatedUsing=OnRep_CurrentHealth, BlueprintReadOnly)
 	float CurrentHealth;
