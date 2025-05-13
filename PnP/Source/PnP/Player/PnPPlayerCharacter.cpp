@@ -88,9 +88,8 @@ void APnPPlayerCharacter::Tick(const float pDeltaTime)
 	{
 		GetCharacterMovement()->bOrientRotationToMovement = false;
 		GetCharacterMovement()->bUseControllerDesiredRotation = true;
-		finalMoveSpeed *= 0.35f;
-		
 	}
+	
 	else if (GaitState == GAIT_SPRINT)
 	{
 		GetCharacterMovement()->bOrientRotationToMovement = false;
@@ -104,7 +103,7 @@ void APnPPlayerCharacter::Tick(const float pDeltaTime)
     
 	GetCharacterMovement()->MaxWalkSpeed = finalMoveSpeed;
 
-	const float targetArmLength = (CharacterAimState == AIM_FOCUSED) ? 100.0f : 500.0f;
+	const float targetArmLength = (CharacterAimState == AIM_FOCUSED) ? 100.0f : 200.0f;
 	CameraBoom->TargetArmLength = FMath::Lerp(CameraBoom->TargetArmLength, targetArmLength, pDeltaTime * 10.0f);
 }
 
@@ -318,4 +317,15 @@ void APnPPlayerCharacter::ServerSetCharacterAimState_Implementation(const EChara
 bool APnPPlayerCharacter::ServerSetCharacterAimState_Validate(ECharacterAimState pNewState)
 {
 	return true;
+}
+
+void APnPPlayerCharacter::GetAimOffsets(float& pOutPitch, float& pOutYaw)
+{
+	FRotator ControlRot = GetControlRotation();
+	FRotator ActorRot = GetActorRotation();
+    
+	FRotator Delta = (ControlRot - ActorRot).GetNormalized();
+    
+	pOutYaw = FMath::ClampAngle(Delta.Yaw, -90.0f, 90.0f);
+	pOutPitch = FMath::ClampAngle(Delta.Pitch, -90.0f, 90.0f);
 }
