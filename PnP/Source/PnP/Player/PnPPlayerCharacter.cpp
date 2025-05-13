@@ -73,33 +73,75 @@ void APnPPlayerCharacter::OnRep_CharacterAimState()
 	}
 }
 
+void APnPPlayerCharacter::OnRep_GaitState()
+{
+	
+}
+
 void APnPPlayerCharacter::Tick(const float pDeltaTime)
 {
 	Super::Tick(pDeltaTime);
 
-	float finalMoveSpeed = (CharacterState == MOTION_SPRINT) ? 600.0f : 200.0f;
+	float finalMoveSpeed = (GaitState == GAIT_SPRINT) ? SprintSpeed : WalkSpeed;
 	
 	if (CharacterAimState == AIM_FOCUSED)
 	{
 		GetCharacterMovement()->bOrientRotationToMovement = false;
 		GetCharacterMovement()->bUseControllerDesiredRotation = true;
 		finalMoveSpeed *= 0.35f;
+		
 	}
-	else
+	else if (GaitState == GAIT_SPRINT)
+	{
+		GetCharacterMovement()->bOrientRotationToMovement = false;
+		GetCharacterMovement()->bUseControllerDesiredRotation = true;
+	}
+	else if (GaitState == GAIT_NORMAL)
 	{
 		GetCharacterMovement()->bOrientRotationToMovement = true;
 		GetCharacterMovement()->bUseControllerDesiredRotation = false;
 	}
     
 	GetCharacterMovement()->MaxWalkSpeed = finalMoveSpeed;
-    
-	float targetArmLength = (CharacterAimState == AIM_FOCUSED) ? 100.0f : 500.0f;
+
+	const float targetArmLength = (CharacterAimState == AIM_FOCUSED) ? 100.0f : 500.0f;
 	CameraBoom->TargetArmLength = FMath::Lerp(CameraBoom->TargetArmLength, targetArmLength, pDeltaTime * 10.0f);
+}
+
+void APnPPlayerCharacter::Jump()
+{
+	if (CharacterState == MOTION_GROUNDED)
+		Super::Jump();
+	
+}
+
+void APnPPlayerCharacter::Landed(const FHitResult& Hit)
+{
+	Super::Landed(Hit);
+
+	ServerSetCharacterState(MOTION_LANDED);
+	
+	GetWorld()->GetTimerManager().SetTimer(LandedTimer,this, &APnPPlayerCharacter:: OnFinishLandedTimer, LandedTime);
+}
+
+void APnPPlayerCharacter::OnFinishLandedTimer()
+{
+	ServerSetCharacterState(ECharacterLocomotionState::MOTION_GROUNDED);
+}
+
+void APnPPlayerCharacter::OnMovementModeChanged(EMovementMode PrevMovementMode, uint8 PreviousCustomMode)
+{
+	Super::OnMovementModeChanged(PrevMovementMode, PreviousCustomMode);
+
+	if (GetCharacterMovement()->MovementMode == MOVE_Falling)
+	{
+		CharacterState = ECharacterLocomotionState::MOTION_IN_AIR;
+	}
 }
 
 void APnPPlayerCharacter::Move(const FInputActionValue& pValue)
 {
-	if (Controller != nullptr)
+	if (Controller != nullptr && CharacterState == MOTION_GROUNDED)
 	{
 		const FVector2D Movement_Vector = pValue.Get<FVector2D>();
 
@@ -142,23 +184,23 @@ void APnPPlayerCharacter::Interact(const FInputActionValue& pValue)
 
 void APnPPlayerCharacter::ToggleSprint(const FInputActionValue& pValue)
 {
-	bool bShould_Sprint = CharacterState != MOTION_SPRINT;
+	bool bShould_Sprint = GaitState != GAIT_SPRINT;
 
 	if (GetLocalRole() == ROLE_Authority)
 	{
 		if (bShould_Sprint)
 		{
-			CharacterState = MOTION_SPRINT;
+			GaitState = GAIT_SPRINT;
 		}
 		else
 		{
-			CharacterState = MOTION_IDLE;
+			GaitState = GAIT_NORMAL;
 		}
 	}
 	else
 	{
-		ECharacterLocomotionState _new_state = bShould_Sprint ? MOTION_SPRINT : MOTION_WALK;
-		ServerSetCharacterState(_new_state);
+		EGaitState _new_state = bShould_Sprint ? GAIT_SPRINT : GAIT_NORMAL;
+		ServerSetCharacterMovementState(_new_state);
 	}
 }
 
@@ -172,6 +214,9 @@ void APnPPlayerCharacter::Aim(const FInputActionValue& pValue)
 	{
 		ServerSetCharacterAimState(AIM_FOCUSED);
 	}
+
+	if (OnEnterAimState.IsBound())
+		OnEnterAimState.Broadcast();
 }
 
 void APnPPlayerCharacter::CancelAim(const FInputActionValue& pValue)
@@ -184,6 +229,9 @@ void APnPPlayerCharacter::CancelAim(const FInputActionValue& pValue)
 	{
 		ServerSetCharacterAimState(AIM_NONE);
 	}
+
+	if (OnLeaveAimState.IsBound())
+		OnLeaveAimState.Broadcast();
 }
 
 void APnPPlayerCharacter::SetupPlayerInputComponent(UInputComponent* pPlayerInputComponent)
@@ -239,6 +287,17 @@ void APnPPlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 
 	DOREPLIFETIME(APnPPlayerCharacter, CharacterState);
 	DOREPLIFETIME(APnPPlayerCharacter, CharacterAimState);
+	DOREPLIFETIME(APnPPlayerCharacter, GaitState);
+}
+
+void APnPPlayerCharacter::ServerSetCharacterMovementState_Implementation(EGaitState pNewState)
+{
+	GaitState = pNewState;
+}
+
+bool APnPPlayerCharacter::ServerSetCharacterMovementState_Validate(EGaitState pNewState)
+{
+	return true;
 }
 
 void APnPPlayerCharacter::ServerSetCharacterState_Implementation(const ECharacterLocomotionState pNewState)
