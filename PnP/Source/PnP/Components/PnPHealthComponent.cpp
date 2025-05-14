@@ -43,11 +43,20 @@ void UPnPHealthComponent::ServerTakeDamage_Implementation(float DamageAmount)
 
 bool UPnPHealthComponent::ServerTakeDamage_Validate(float DamageAmount)
 {
-	return DamageAmount >= 0.0f;
+	return DamageAmount > 0.0f;
 }
 
 void UPnPHealthComponent::OnRep_CurrentHealth(float OldHealth)
 {
+	if (CurrentHealth > OldHealth)
+	{
+		//play heal sound
+	}
+	else if (CurrentHealth > OldHealth)
+	{
+		// play damage sound
+	}
+	
 	//TODO: UPDATE UI, PLAY VFX, PLAY DAMAGE SOUND
 }
 

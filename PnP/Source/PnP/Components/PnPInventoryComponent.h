@@ -26,9 +26,12 @@ public:
 	UPROPERTY(BlueprintReadOnly, Replicated)
 	TArray<int> EquippedEntityIds;
 
-	UPROPERTY(blueprintReadOnly, Replicated)
+	UPROPERTY(BlueprintReadOnly, Replicated)
 	int CurrentEquippedIndex;
 
 	UFUNCTION(Server, Reliable)
 	void ServerEquip(int slot, int entityId);
+
+	UFUNCTION(Server, Reliable)
+	void ServerAddEquippedItem(int slot, int entityId);
 };
