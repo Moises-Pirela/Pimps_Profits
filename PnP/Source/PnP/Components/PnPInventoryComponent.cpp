@@ -3,34 +3,40 @@
 
 #include "PnPInventoryComponent.h"
 
+#include "Net/UnrealNetwork.h"
+#include "PnP/Utils/Logger.h"
 
-// Sets default values for this component's properties
+
 UPnPInventoryComponent::UPnPInventoryComponent()
 {
-	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
-	// off to improve performance if you don't need them.
-	PrimaryComponentTick.bCanEverTick = true;
-
-	// ...
+	PrimaryComponentTick.bCanEverTick = false;
 }
 
 
-// Called when the game starts
 void UPnPInventoryComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
-	// ...
-	
 }
 
-
-// Called every frame
-void UPnPInventoryComponent::TickComponent(float delta_time, ELevelTick tick_type,
-                                           FActorComponentTickFunction* this_tick_function)
+void UPnPInventoryComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
-	Super::TickComponent(delta_time, tick_type, this_tick_function);
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	// ...
+	DOREPLIFETIME(UPnPInventoryComponent, EquippedEntityIds);
+	DOREPLIFETIME(UPnPInventoryComponent, CurrentEquippedIndex);
+}
+
+void UPnPInventoryComponent::ServerEquip_Implementation(int slot, int entityId)
+{
+	if (EquippedEntityIds[slot] != -1)
+	{
+		auto message = FString::Printf(TEXT("Equipped entity %d"), entityId);
+		ClockLog(message, ELogLevel::LOG_DEBUG, true);
+	}
+	else
+	{
+		auto message = FString::Printf(TEXT("No Equipped entity %d"), entityId);
+		ClockLog(message, ELogLevel::LOG_DEBUG, true);
+	}
 }
 

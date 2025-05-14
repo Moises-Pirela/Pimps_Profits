@@ -55,10 +55,6 @@ void APnPPlayerCharacter::BeginPlay()
 	Super::BeginPlay();
 }
 
-void APnPPlayerCharacter::OnRep_CharacterState()
-{
-}
-
 void APnPPlayerCharacter::OnRep_CharacterAimState()
 {
 	if (CharacterAimState == AIM_FOCUSED)
@@ -71,11 +67,6 @@ void APnPPlayerCharacter::OnRep_CharacterAimState()
 		GetCharacterMovement()->bOrientRotationToMovement = true;
 		GetCharacterMovement()->bUseControllerDesiredRotation = false;
 	}
-}
-
-void APnPPlayerCharacter::OnRep_GaitState()
-{
-	
 }
 
 void APnPPlayerCharacter::Tick(const float pDeltaTime)
@@ -118,14 +109,28 @@ void APnPPlayerCharacter::Landed(const FHitResult& Hit)
 {
 	Super::Landed(Hit);
 
-	ServerSetCharacterState(MOTION_LANDED);
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		CharacterState = ECharacterLocomotionState::MOTION_LANDED;	
+	}
+	else
+	{
+		ServerSetCharacterState(MOTION_LANDED);
+	}
 	
 	GetWorld()->GetTimerManager().SetTimer(LandedTimer,this, &APnPPlayerCharacter:: OnFinishLandedTimer, LandedTime);
 }
 
 void APnPPlayerCharacter::OnFinishLandedTimer()
 {
-	ServerSetCharacterState(ECharacterLocomotionState::MOTION_GROUNDED);
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		CharacterState = ECharacterLocomotionState::MOTION_GROUNDED;
+	}
+	else
+	{
+		ServerSetCharacterState(MOTION_GROUNDED);
+	}
 }
 
 void APnPPlayerCharacter::OnMovementModeChanged(EMovementMode PrevMovementMode, uint8 PreviousCustomMode)
@@ -134,7 +139,15 @@ void APnPPlayerCharacter::OnMovementModeChanged(EMovementMode PrevMovementMode, 
 
 	if (GetCharacterMovement()->MovementMode == MOVE_Falling)
 	{
-		CharacterState = ECharacterLocomotionState::MOTION_IN_AIR;
+
+		if (GetLocalRole() == ROLE_Authority)
+		{
+			CharacterState = ECharacterLocomotionState::MOTION_IN_AIR;	
+		}
+		else
+		{
+			ServerSetCharacterState(MOTION_IN_AIR);
+		}
 	}
 }
 

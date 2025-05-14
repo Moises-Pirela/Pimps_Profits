@@ -99,10 +99,10 @@ protected:
 	void Aim(const FInputActionValue& pValue);
 	void CancelAim(const FInputActionValue& pValue);
 
-	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_CharacterState)
+	UPROPERTY(BlueprintReadOnly, Replicated)
 	TEnumAsByte<ECharacterLocomotionState> CharacterState;
 
-	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_GaitState)
+	UPROPERTY(BlueprintReadOnly, Replicated)
 	TEnumAsByte<EGaitState> GaitState;
 
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_CharacterAimState)
@@ -114,16 +114,8 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	float SprintSpeed = 600.0f;
 	
-
-	UFUNCTION()
-	void OnRep_CharacterState();
-
 	UFUNCTION()
 	void OnRep_CharacterAimState();
-	
-	UFUNCTION()
-	void OnRep_GaitState();
-	
 
 public:
 	virtual void Tick(float pDeltaTime) override;
