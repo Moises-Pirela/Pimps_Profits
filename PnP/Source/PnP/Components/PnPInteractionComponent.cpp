@@ -65,18 +65,18 @@ void UPnPInteractionComponent::PerformInteractionTrace()
        LifeTime
    );
 
-    // Clear previous focus if we had one but didn't hit anything now
-    if (!bHit && m_focusedInteractiveEntityId)
+    auto entitySubsystem = GetWorld()->GetSubsystem<UEntitySubsystem>();
+
+    if (!bHit && m_focusedInteractiveEntityId != -1)
     {
-        UPnPInteractableComponent* oldInteractable = Cast<UPnPInteractableComponent>(
-            m_focusedInteractiveEntityId->GetComponentByClass(UPnPInteractableComponent::StaticClass()));
+        UPnPInteractableComponent* oldInteractable = entitySubsystem->GetComponent<UPnPInteractableComponent>(m_focusedInteractiveEntityId);
         
         if (oldInteractable)
         {
             oldInteractable->HandleFocusEnd(GetOwner());
         }
         
-        m_focusedInteractiveEntityId = nullptr;
+        m_focusedInteractiveEntityId = -1;
         return;
     }
 
@@ -91,18 +91,20 @@ void UPnPInteractionComponent::PerformInteractionTrace()
             bPersistent,
             LifeTime
         );
+
         
         AActor* hitActor = hitResult.GetActor();
+
+        auto hitUnrealEntity = hitActor->GetComponentByClass<UUnrealEntity>();
         
-        if (hitActor == m_focusedInteractiveEntityId)
+        if (hitUnrealEntity->EntityId == m_focusedInteractiveEntityId)
             return;
             
-        UPnPInteractableComponent* interactable = Cast<UPnPInteractableComponent>(
-            hitActor->GetComponentByClass(UPnPInteractableComponent::StaticClass()));
+        UPnPInteractableComponent* interactable = entitySubsystem->GetComponent<UPnPInteractableComponent>(hitUnrealEntity->EntityId);
 
         if (interactable && interactable->CanBeInteractedWith(GetOwner()))
         {
-            if (m_focusedInteractiveEntityId)
+            if (m_focusedInteractiveEntityId != -1)
             {
                 DrawDebugString(
                 GetWorld(),
@@ -126,9 +128,9 @@ void UPnPInteractionComponent::PerformInteractionTrace()
                     3.0f
                 );
 
-                auto entitySubsystem = GetWorld()->GetSubsystem<UEntitySubsystem>();
                 
-                UPnPInteractableComponent* oldInteractable =  entitySubsystem->get
+                
+                UPnPInteractableComponent* oldInteractable = entitySubsystem->GetComponent<UPnPInteractableComponent>(m_focusedInteractiveEntityId);  
                 
                 if (oldInteractable)
                 {
@@ -138,7 +140,7 @@ void UPnPInteractionComponent::PerformInteractionTrace()
                 }
             }
             
-            m_focusedInteractiveEntityId = hitActor;
+            m_focusedInteractiveEntityId = hitUnrealEntity->EntityId;
             interactable->HandleFocusBegin(GetOwner());
             OnBeginFocus.Broadcast(interactable->GetOwner());
             

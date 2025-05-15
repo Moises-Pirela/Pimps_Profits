@@ -178,10 +178,10 @@ void APnPPlayerCharacter::Look(const FInputActionValue& pValue)
 
 void APnPPlayerCharacter::Interact(const FInputActionValue& pValue)
 {
-	if (InteractionComponent->HasFocus())
-	{
-		InteractionComponent->BeginInteraction();
-	}
+	// if (InteractionComponent->HasFocus())
+	// {
+	// 	InteractionComponent->BeginInteraction();
+	// }
 }
 
 void APnPPlayerCharacter::ToggleSprint(const FInputActionValue& pValue)

@@ -43,6 +43,8 @@ public:
 	void DestroyEntity(int entityId);
 	void UpdateEntityArchetype(int32 entityId, FComponentFlags oldSignature, FComponentFlags newSignature);
 
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+
 	template<typename... ComponentTypes>
 	FEntityView GetEntitiesWith()
 	{

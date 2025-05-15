@@ -4,7 +4,9 @@
 #include "EntityStorage.h"
 
 #include "ComponentArray.h"
+#include "EntitySubsystem.h"
 #include "UnrealEntity.h"
+#include "Net/UnrealNetwork.h"
 #include "PnP/PnP.h"
 #include "PnP/Components/PnPComponentBase.h"
 
@@ -203,4 +205,13 @@ void UEntityStorage::UpdateEntityArchetype(int32 entityId, FComponentFlags oldSi
     }
 
     entity->ComponentSignature = newSignature;
+}
+
+void UEntityStorage::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	UObject::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(UEntityStorage, Entities);
+	DOREPLIFETIME(UEntityStorage, Components);
+	DOREPLIFETIME(UEntityStorage, Archetypes);
 }
