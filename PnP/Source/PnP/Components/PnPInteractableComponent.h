@@ -11,7 +11,7 @@ class UPnPInteractionComponent;
 // Delegate declarations
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractorEvent, AActor*, Interactor);
 
-UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
+UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent, DisplayName="Interactable Component"))
 class PNP_API UPnPInteractableComponent : public UPnPComponentBase
 {
     GENERATED_BODY()
@@ -41,19 +41,19 @@ public:
     UPROPERTY(Replicated, BlueprintReadOnly, Category = "Interaction|Runtime")
     float InteractionProgress;
     
-    UPROPERTY(BlueprintAssignable, Category = "Interaction|Events")
+    UPROPERTY(BlueprintAssignable)
     FOnInteractorEvent OnBeginFocus;
     
-    UPROPERTY(BlueprintAssignable, Category = "Interaction|Events")
+    UPROPERTY(BlueprintAssignable)
     FOnInteractorEvent OnEndFocus;
     
-    UPROPERTY(BlueprintAssignable, Category = "Interaction|Events")
+    UPROPERTY(BlueprintAssignable)
     FOnInteractorEvent OnInteractionStarted;
     
-    UPROPERTY(BlueprintAssignable, Category = "Interaction|Events")
+    UPROPERTY(BlueprintAssignable)
     FOnInteractorEvent OnInteractionEnded;
     
-    UPROPERTY(BlueprintAssignable, Category = "Interaction|Events")
+    UPROPERTY(BlueprintAssignable)
     FOnInteractorEvent OnInteractionCompleted;
     
     UFUNCTION(BlueprintNativeEvent, Category = "Interaction")
@@ -82,7 +82,6 @@ public:
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 };
 
-// Implementation of the native functions
 inline bool UPnPInteractableComponent::CanBeInteractedWith_Implementation(AActor* InteractingActor) const { return true; }
 inline void UPnPInteractableComponent::HandleFocusBegin_Implementation(AActor* InteractingActor) { OnBeginFocus.Broadcast(InteractingActor); }
 inline void UPnPInteractableComponent::HandleFocusEnd_Implementation(AActor* InteractingActor) { OnEndFocus.Broadcast(InteractingActor); }

@@ -7,6 +7,9 @@
 #include "PnPInteractionComponent.generated.h"
 
 
+class UPnPInteractableComponent;
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractableEvent, AActor*, Interactable);
+
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class PNP_API UPnPInteractionComponent : public UPnPComponentBase
 {
@@ -27,7 +30,7 @@ protected:
     
 	// Currently focused interactive object
 	UPROPERTY(Replicated)
-	AActor* m_focusedInteractiveObject;
+	int m_focusedInteractiveEntityId = -1;
     
 	// Is interaction in progress
 	UPROPERTY(ReplicatedUsing = OnRep_InteractionInProgress)
@@ -39,7 +42,14 @@ protected:
 	// Trace for interactive objects
 	void PerformInteractionTrace();
 
-public:    
+public:
+
+	UPROPERTY(BlueprintAssignable)
+	FOnInteractableEvent OnBeginFocus;
+    
+	UPROPERTY(BlueprintAssignable)
+	FOnInteractableEvent OnEndFocus;
+	
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
     
 	// Override GetLifetimeReplicatedProps to setup replication

@@ -41,7 +41,6 @@ APnPPlayerCharacter::APnPPlayerCharacter()
 
 	StatsComponent = CreateDefaultSubobject<UPnPCharacterStatsComponent>(TEXT("StatsComponent"));
 	InventoryComponent = CreateDefaultSubobject<UPnPInventoryComponent>(TEXT("InventoryComponent"));
-	InteractionComponent = CreateDefaultSubobject<UPnPInteractionComponent>(TEXT("InteractionComponent"));
 	BusinessComponent = CreateDefaultSubobject<UPnPBusinessManagerComponent>(TEXT("BusinessComponent"));
 	NetworkComponent = CreateDefaultSubobject<UPnPNetworkIdentityComponent>(TEXT("NetworkComponent"));
 
@@ -74,13 +73,13 @@ void APnPPlayerCharacter::Tick(const float pDeltaTime)
 	Super::Tick(pDeltaTime);
 
 	float finalMoveSpeed = (GaitState == GAIT_SPRINT) ? SprintSpeed : WalkSpeed;
-	
+
 	if (CharacterAimState == AIM_FOCUSED)
 	{
 		GetCharacterMovement()->bOrientRotationToMovement = false;
 		GetCharacterMovement()->bUseControllerDesiredRotation = true;
 	}
-	
+
 	else if (GaitState == GAIT_SPRINT)
 	{
 		GetCharacterMovement()->bOrientRotationToMovement = false;
@@ -91,7 +90,7 @@ void APnPPlayerCharacter::Tick(const float pDeltaTime)
 		GetCharacterMovement()->bOrientRotationToMovement = true;
 		GetCharacterMovement()->bUseControllerDesiredRotation = false;
 	}
-    
+
 	GetCharacterMovement()->MaxWalkSpeed = finalMoveSpeed;
 
 	const float targetArmLength = (CharacterAimState == AIM_FOCUSED) ? 100.0f : 200.0f;
@@ -102,7 +101,6 @@ void APnPPlayerCharacter::Jump()
 {
 	if (CharacterState == MOTION_GROUNDED)
 		Super::Jump();
-	
 }
 
 void APnPPlayerCharacter::Landed(const FHitResult& Hit)
@@ -111,14 +109,14 @@ void APnPPlayerCharacter::Landed(const FHitResult& Hit)
 
 	if (GetLocalRole() == ROLE_Authority)
 	{
-		CharacterState = ECharacterLocomotionState::MOTION_LANDED;	
+		CharacterState = ECharacterLocomotionState::MOTION_LANDED;
 	}
 	else
 	{
 		ServerSetCharacterState(MOTION_LANDED);
 	}
-	
-	GetWorld()->GetTimerManager().SetTimer(LandedTimer,this, &APnPPlayerCharacter:: OnFinishLandedTimer, LandedTime);
+
+	GetWorld()->GetTimerManager().SetTimer(LandedTimer, this, &APnPPlayerCharacter::OnFinishLandedTimer, LandedTime);
 }
 
 void APnPPlayerCharacter::OnFinishLandedTimer()
@@ -139,10 +137,9 @@ void APnPPlayerCharacter::OnMovementModeChanged(EMovementMode PrevMovementMode, 
 
 	if (GetCharacterMovement()->MovementMode == MOVE_Falling)
 	{
-
 		if (GetLocalRole() == ROLE_Authority)
 		{
-			CharacterState = ECharacterLocomotionState::MOTION_IN_AIR;	
+			CharacterState = ECharacterLocomotionState::MOTION_IN_AIR;
 		}
 		else
 		{
@@ -181,16 +178,9 @@ void APnPPlayerCharacter::Look(const FInputActionValue& pValue)
 
 void APnPPlayerCharacter::Interact(const FInputActionValue& pValue)
 {
-	if (InteractionComponent)
+	if (InteractionComponent->HasFocus())
 	{
-		if (pValue.GetValueType() == EInputActionValueType::Boolean && pValue.Get<bool>())
-		{
-			InteractionComponent->BeginInteraction();
-		}
-		else
-		{
-			InteractionComponent->EndInteraction();
-		}
+		InteractionComponent->BeginInteraction();
 	}
 }
 
@@ -261,7 +251,8 @@ void APnPPlayerCharacter::SetupPlayerInputComponent(UInputComponent* pPlayerInpu
 		}
 	}
 
-	if (UEnhancedInputComponent* _enhanced_input_component = CastChecked<UEnhancedInputComponent>(pPlayerInputComponent))
+	if (UEnhancedInputComponent* _enhanced_input_component = CastChecked<
+		UEnhancedInputComponent>(pPlayerInputComponent))
 	{
 		// Movement
 		_enhanced_input_component->BindAction(MoveAction, ETriggerEvent::Triggered, this, &APnPPlayerCharacter::Move);
@@ -285,7 +276,8 @@ void APnPPlayerCharacter::SetupPlayerInputComponent(UInputComponent* pPlayerInpu
 
 		// Aiming
 		_enhanced_input_component->BindAction(AimAction, ETriggerEvent::Started, this, &APnPPlayerCharacter::Aim);
-		_enhanced_input_component->BindAction(AimAction, ETriggerEvent::Completed, this, &APnPPlayerCharacter::CancelAim);
+		_enhanced_input_component->BindAction(AimAction, ETriggerEvent::Completed, this,
+		                                      &APnPPlayerCharacter::CancelAim);
 
 		// Primary Fire
 		//_enhanced_input_component->BindAction(m_aimAction, ETriggerEvent::Triggered, this, &APnPPlayerCharacter::Aim);
@@ -336,9 +328,9 @@ void APnPPlayerCharacter::GetAimOffsets(float& pOutPitch, float& pOutYaw)
 {
 	FRotator ControlRot = GetControlRotation();
 	FRotator ActorRot = GetActorRotation();
-    
+
 	FRotator Delta = (ControlRot - ActorRot).GetNormalized();
-    
+
 	pOutYaw = FMath::ClampAngle(Delta.Yaw, -90.0f, 90.0f);
 	pOutPitch = FMath::ClampAngle(Delta.Pitch, -90.0f, 90.0f);
 }

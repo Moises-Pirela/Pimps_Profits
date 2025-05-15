@@ -26,13 +26,14 @@ public:
 	//FIELD
 	UPROPERTY()
 	TMap<UClass*, int> ComponentTypeIdMap;
-	UPROPERTY()
-	TArray<FComponentArray> Components;
-	UPROPERTY()
-	TArray<UUnrealEntity*> Entities;
 	
-	UPROPERTY()
+	UPROPERTY(Replicated)
+	TArray<FComponentArray> Components;
+	UPROPERTY(Replicated)
+	TArray<UUnrealEntity*> Entities;
+	UPROPERTY(Replicated)
 	TArray<FArchetype> Archetypes;
+	
 	UPROPERTY()
 	TMap<uint32, int32> SignatureToArchetypeIndex;
 

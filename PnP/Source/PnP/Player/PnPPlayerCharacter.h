@@ -63,11 +63,11 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PNP | Components", meta = (AllowPrivateAccess = "true"))
 	UPnPInventoryComponent* InventoryComponent;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PNP | Components", meta = (AllowPrivateAccess = "true"))
-	UPnPInteractionComponent* InteractionComponent;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PNP | Components", meta = (AllowPrivateAccess = "true"))
 	UPnPBusinessManagerComponent* BusinessComponent;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PNP | Components", meta = (AllowPrivateAccess = "true"))
 	UPnPNetworkIdentityComponent* NetworkComponent;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "PNP | Components", meta = (AllowPrivateAccess = "true"))
+	UPnPInteractionComponent* InteractionComponent;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputMappingContext* DefaultMappingContext;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
@@ -144,9 +144,6 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Character")
 	UPnPInventoryComponent* GetInventoryComponent() const { return InventoryComponent; }
-
-	UFUNCTION(BlueprintCallable, Category = "Character")
-	UPnPInteractionComponent* GetInteractionComponent() const { return InteractionComponent; }
 
 	UFUNCTION(BlueprintCallable, Category = "Character")
 	UPnPBusinessManagerComponent* GetBusinessComponent() const { return BusinessComponent; }
