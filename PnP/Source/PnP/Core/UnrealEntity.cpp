@@ -3,6 +3,7 @@
 
 #include "UnrealEntity.h"
 
+#include "EntitySubsystem.h"
 #include "GameFramework/GameStateBase.h"
 #include "GameFramework/PlayerState.h"
 #include "Net/UnrealNetwork.h"
@@ -13,22 +14,23 @@ UUnrealEntity::UUnrealEntity()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 	EntityId = -1;
+	SetIsReplicatedByDefault(true);
 }
 
 TArray<UPnPComponentBase*> UUnrealEntity::GetComponents() const
 {
 	TArray<UPnPComponentBase*> components;
-    
+
 	TArray<UActorComponent*> actorComponents;
 	GetOwner()->GetComponents(UPnPComponentBase::StaticClass(), actorComponents);
-    
+
 	components.Reserve(actorComponents.Num());
-    
+
 	for (UActorComponent* component : actorComponents)
 	{
 		components.Add(static_cast<UPnPComponentBase*>(component));
 	}
-    
+
 	return components;
 }
 
@@ -54,6 +56,7 @@ void UUnrealEntity::BeginPlay()
 	const bool bIsServer = GetOwner()->HasAuthority();
 	bIsRemoteEntity = !bIsServer;
 
+	// Set owner client ID if applicable
 	if (AActor* owner = GetOwner())
 	{
 		if (APlayerController* pc = Cast<APlayerController>(owner->GetInstigatorController()))
@@ -64,5 +67,23 @@ void UUnrealEntity::BeginPlay()
 			}
 		}
 	}
-}
 
+	// Register with the ECS system
+	UEntitySubsystem* entitySystem = GetWorld()->GetSubsystem<UEntitySubsystem>();
+	if (entitySystem)
+	{
+		if (bIsServer)
+		{
+			// Server directly registers the entity
+			EntityId = entitySystem->EntityStorage->CreateEntity(this);
+		}
+		else
+		{
+			// Client requests registration via RPC
+			entitySystem->ServerCreateEntity(this);
+
+			// Note: EntityId will be set when the server replicates it back
+			// You might want local prediction in some cases
+		}
+	}
+}

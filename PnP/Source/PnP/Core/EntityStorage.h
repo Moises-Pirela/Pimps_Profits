@@ -23,7 +23,7 @@ class PNP_API UEntityStorage : public UObject
 	GENERATED_BODY()
 
 public:
-	//FIELD
+	//PROPERTIES
 	UPROPERTY()
 	TMap<UClass*, int> ComponentTypeIdMap;
 	
@@ -44,6 +44,9 @@ public:
 	void UpdateEntityArchetype(int32 entityId, FComponentFlags oldSignature, FComponentFlags newSignature);
 
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+	bool IsServer() const;
+	bool IsClientEntity(int32 EntityId) const;
+	bool CanModifyEntity(int32 EntityId) const;
 
 	template<typename... ComponentTypes>
 	FEntityView GetEntitiesWith()
@@ -61,9 +64,18 @@ public:
 		return FEntityView(nullptr); // Empty view
 	}
 
+	void InitializeStorage();
+	void SyncComponentToECS(UPnPComponentBase* Component, int32 EntityId);
+
 private:
+
+	//PROPERTIES
+	UPROPERTY(Replicated)
 	int AvailableEntityId;
+	UPROPERTY(Replicated)
 	int RecycledEntityId;
 };
+
+
 
 

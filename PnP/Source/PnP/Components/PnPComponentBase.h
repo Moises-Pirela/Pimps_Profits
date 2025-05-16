@@ -13,5 +13,8 @@ class PNP_API UPnPComponentBase : public UActorComponent
 	GENERATED_BODY()
 
 public:
-	UPnPComponentBase(){};
+	UPnPComponentBase()
+	{
+		SetIsReplicatedByDefault(true);
+	};
 };

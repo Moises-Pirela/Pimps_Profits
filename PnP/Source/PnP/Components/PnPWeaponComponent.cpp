@@ -8,6 +8,8 @@
 UPnPWeaponComponent::UPnPWeaponComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
+
+	SetIsReplicatedByDefault(true);
 }
 
 

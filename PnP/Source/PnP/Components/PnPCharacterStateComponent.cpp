@@ -7,6 +7,8 @@
 UPnPCharacterStateComponent::UPnPCharacterStateComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
+
+	SetIsReplicatedByDefault(true);
 }
 
 bool UPnPCharacterStateComponent::TrySetState(EPnPCharacterState pNewState)

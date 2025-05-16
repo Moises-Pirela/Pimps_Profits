@@ -14,6 +14,7 @@ UPnPInteractionComponent::UPnPInteractionComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
 
+    SetIsReplicatedByDefault(true);
 }
 
 
@@ -96,6 +97,9 @@ void UPnPInteractionComponent::PerformInteractionTrace()
         AActor* hitActor = hitResult.GetActor();
 
         auto hitUnrealEntity = hitActor->GetComponentByClass<UUnrealEntity>();
+
+        if (!hitUnrealEntity)
+            return;
         
         if (hitUnrealEntity->EntityId == m_focusedInteractiveEntityId)
             return;
@@ -127,8 +131,6 @@ void UPnPInteractionComponent::PerformInteractionTrace()
                     0,
                     3.0f
                 );
-
-                
                 
                 UPnPInteractableComponent* oldInteractable = entitySubsystem->GetComponent<UPnPInteractableComponent>(m_focusedInteractiveEntityId);  
                 

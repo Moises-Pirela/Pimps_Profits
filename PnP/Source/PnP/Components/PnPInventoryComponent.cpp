@@ -10,6 +10,7 @@
 UPnPInventoryComponent::UPnPInventoryComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
+	SetIsReplicatedByDefault(true);
 }
 
 

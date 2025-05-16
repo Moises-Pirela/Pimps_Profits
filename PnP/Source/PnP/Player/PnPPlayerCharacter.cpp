@@ -12,6 +12,7 @@
 #include "PnP/Components/PnPInteractionComponent.h"
 #include "PnP/Components/PnPInventoryComponent.h"
 #include "PnP/Components/PnPNetworkIdentityComponent.h"
+#include "PnP/Utils/Logger.h"
 
 
 APnPPlayerCharacter::APnPPlayerCharacter()
