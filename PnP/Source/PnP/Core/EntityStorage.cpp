@@ -146,6 +146,8 @@ void UEntityStorage::DestroyEntity(int entityId)
 
 	Entities[entityId] = nullptr;
 	RecycledEntityId = entityId;
+
+	entity->GetOwner()->Destroy(true);
 }
 
 void UEntityStorage::UpdateEntityArchetype(int32 entityId, FComponentFlags oldSignature, FComponentFlags newSignature)

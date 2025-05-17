@@ -51,13 +51,14 @@ public:
 	UPROPERTY(EditAnywhere)
 	float LandedTime;
 
+	UPROPERTY(BlueprintReadOnly, Replicated)
+	float CameraPitch;
+
 protected:
 	virtual void BeginPlay() override;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	USpringArmComponent* CameraBoom;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	UCameraComponent* FollowCamera;
+	UCameraComponent* FirstPersonCamera;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PNP | Components", meta = (AllowPrivateAccess = "true"))
 	UPnPCharacterStatsComponent* StatsComponent;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PNP | Components", meta = (AllowPrivateAccess = "true"))
@@ -135,9 +136,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void GetAimOffsets(float& Pitch, float& Yaw);
 
-	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
-
-	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+	FORCEINLINE UCameraComponent* GetFirstPersonCamera() const { return FirstPersonCamera; }
 
 	UFUNCTION(BlueprintCallable, Category = "Character")
 	UPnPCharacterStatsComponent* GetStatsComponent() const { return StatsComponent; }
@@ -156,4 +155,7 @@ public:
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerSetCharacterAimState(ECharacterAimState pNewState);
+
+	UFUNCTION(Server, Unreliable)
+	void ServerSetCameraPitch(float pCameraPitch);
 };

@@ -179,6 +179,10 @@ void UPnPInteractionComponent::EndInteraction()
 {
 }
 
+void UPnPInteractionComponent::ClientFocusedInteraction_Implementation()
+{
+}
+
 void UPnPInteractionComponent::ServerEndInteraction_Implementation()
 {
 }

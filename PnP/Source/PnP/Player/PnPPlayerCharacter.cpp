@@ -28,17 +28,9 @@ APnPPlayerCharacter::APnPPlayerCharacter()
 	GetCharacterMovement()->JumpZVelocity = 400.0f;
 	GetCharacterMovement()->AirControl = 0.2f;
 
-	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
-	CameraBoom->SetupAttachment(RootComponent);
-	CameraBoom->TargetArmLength = 300.0f;
-	CameraBoom->bUsePawnControlRotation = true;
-	CameraBoom->SocketOffset = FVector(0.0f, 80.0f, 65.0f);
-	CameraBoom->bEnableCameraLag = true;
-	CameraBoom->CameraLagSpeed = 15.0f;
-
-	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
-	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
-	FollowCamera->bUsePawnControlRotation = false;
+	FirstPersonCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("1P_Camera"));
+	FirstPersonCamera->SetupAttachment(GetMesh(), FName("head"));
+	FirstPersonCamera->bUsePawnControlRotation = true;
 
 	StatsComponent = CreateDefaultSubobject<UPnPCharacterStatsComponent>(TEXT("StatsComponent"));
 	InventoryComponent = CreateDefaultSubobject<UPnPInventoryComponent>(TEXT("InventoryComponent"));
@@ -75,27 +67,10 @@ void APnPPlayerCharacter::Tick(const float pDeltaTime)
 
 	float finalMoveSpeed = (GaitState == GAIT_SPRINT) ? SprintSpeed : WalkSpeed;
 
-	if (CharacterAimState == AIM_FOCUSED)
-	{
-		GetCharacterMovement()->bOrientRotationToMovement = false;
-		GetCharacterMovement()->bUseControllerDesiredRotation = true;
-	}
-
-	else if (GaitState == GAIT_SPRINT)
-	{
-		GetCharacterMovement()->bOrientRotationToMovement = false;
-		GetCharacterMovement()->bUseControllerDesiredRotation = true;
-	}
-	else if (GaitState == GAIT_NORMAL)
-	{
-		GetCharacterMovement()->bOrientRotationToMovement = true;
-		GetCharacterMovement()->bUseControllerDesiredRotation = false;
-	}
-
 	GetCharacterMovement()->MaxWalkSpeed = finalMoveSpeed;
 
-	const float targetArmLength = (CharacterAimState == AIM_FOCUSED) ? 100.0f : 200.0f;
-	CameraBoom->TargetArmLength = FMath::Lerp(CameraBoom->TargetArmLength, targetArmLength, pDeltaTime * 10.0f);
+	const float targetFOV = (CharacterAimState == AIM_FOCUSED) ? 75.0f : 90.0f;
+	FirstPersonCamera->SetFieldOfView(FMath::Lerp(FirstPersonCamera->FieldOfView, targetFOV, pDeltaTime * 10.0f));
 }
 
 void APnPPlayerCharacter::Jump()
@@ -174,6 +149,8 @@ void APnPPlayerCharacter::Look(const FInputActionValue& pValue)
 
 		AddControllerYawInput(_look_axis_vector.X);
 		AddControllerPitchInput(_look_axis_vector.Y);
+
+		CameraPitch = FMath::Clamp(CameraPitch + _look_axis_vector.Y, -18, 18.0f);
 	}
 }
 
@@ -293,6 +270,7 @@ void APnPPlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 	DOREPLIFETIME(APnPPlayerCharacter, CharacterState);
 	DOREPLIFETIME(APnPPlayerCharacter, CharacterAimState);
 	DOREPLIFETIME(APnPPlayerCharacter, GaitState);
+	DOREPLIFETIME(APnPPlayerCharacter, CameraPitch);
 }
 
 void APnPPlayerCharacter::ServerSetCharacterMovementState_Implementation(EGaitState pNewState)
@@ -334,4 +312,20 @@ void APnPPlayerCharacter::GetAimOffsets(float& pOutPitch, float& pOutYaw)
 
 	pOutYaw = FMath::ClampAngle(Delta.Yaw, -90.0f, 90.0f);
 	pOutPitch = FMath::ClampAngle(Delta.Pitch, -90.0f, 90.0f);
+
+
+	if (IsLocallyControlled())
+	{
+		CameraPitch = pOutPitch;
+        
+		if (!HasAuthority())
+		{
+			ServerSetCameraPitch(pOutPitch);
+		}
+	}
+}
+
+void APnPPlayerCharacter::ServerSetCameraPitch_Implementation(float pCameraPitch)
+{
+	CameraPitch = pCameraPitch;
 }

@@ -44,7 +44,7 @@ void APnPReplicationTestActor::TakeSomeDamage(float Amount)
 
 void APnPReplicationTestActor::PerformPeriodicTest()
 {
-    LogEntityStatus();
+    //LogEntityStatus();
     
     // On server, modify some data to test replication
     if (HasAuthority() && HealthComponent)
@@ -54,6 +54,13 @@ void APnPReplicationTestActor::PerformPeriodicTest()
         
         ClockLog(FString::Printf(TEXT("Server applied damage: %.1f, New Health: %.1f"), 
             DamageAmount, HealthComponent->CurrentHealth), LOG_INFO);
+
+        if (HealthComponent->CurrentHealth <= 0)
+        {
+            UEntitySubsystem* EntitySystem = GetWorld()->GetSubsystem<UEntitySubsystem>();
+
+            EntitySystem->ServerDestroyEntity(EntityComponent->EntityId);
+        }
     }
 }
 

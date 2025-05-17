@@ -67,4 +67,7 @@ public:
     
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerEndInteraction();
+
+	UFUNCTION(Client, Reliable)
+	void ClientFocusedInteraction();
 };
