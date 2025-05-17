@@ -92,19 +92,25 @@ void APnPPlayerCharacter::Tick(const float pDeltaTime)
 		}
 
 		const float targetFOV = (CharacterAimState == AIM_FOCUSED) ? 75.0f : 90.0f;
-		const float interpSpeed = 10.0f;
-    
-		float newFOV = FMath::FInterpTo(
-			FirstPersonCamera->FieldOfView, 
-			targetFOV, 
-			pDeltaTime, 
-			interpSpeed
-		);
-    
-		if (!FMath::IsNearlyEqual(FirstPersonCamera->FieldOfView, newFOV, 0.01f))
+
+		if (targetFOV != FirstPersonCamera->FieldOfView)
 		{
-			FirstPersonCamera->SetFieldOfView(targetFOV);
-		}	
+			const float interpSpeed = 10.0f;
+    
+			float newFOV = FMath::FInterpTo(
+				FirstPersonCamera->FieldOfView, 
+				targetFOV, 
+				pDeltaTime, 
+				interpSpeed
+			);
+
+			FirstPersonCamera->SetFieldOfView(newFOV);
+    
+			if (!FMath::IsNearlyEqual(FirstPersonCamera->FieldOfView, newFOV, 0.01f))
+			{
+				FirstPersonCamera->SetFieldOfView(targetFOV);
+			}	
+		}
 	}
 }
 
