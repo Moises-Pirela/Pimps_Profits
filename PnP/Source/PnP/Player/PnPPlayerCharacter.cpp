@@ -30,12 +30,25 @@ APnPPlayerCharacter::APnPPlayerCharacter()
 
 	FirstPersonCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("1P_Camera"));
 	FirstPersonCamera->SetupAttachment(GetMesh(), FName("head"));
-	FirstPersonCamera->bUsePawnControlRotation = true;
+	FirstPersonCamera->bUsePawnControlRotation = true; 
 
 	StatsComponent = CreateDefaultSubobject<UPnPCharacterStatsComponent>(TEXT("StatsComponent"));
 	InventoryComponent = CreateDefaultSubobject<UPnPInventoryComponent>(TEXT("InventoryComponent"));
 	BusinessComponent = CreateDefaultSubobject<UPnPBusinessManagerComponent>(TEXT("BusinessComponent"));
 	NetworkComponent = CreateDefaultSubobject<UPnPNetworkIdentityComponent>(TEXT("NetworkComponent"));
+
+	// static ConstructorHelpers::FObjectFinder<UInputMappingContext> DefaultContextFinder(TEXT("/Game/_PNP/Gameplay/Input/CharacterInput/IMC_PimpCharacter.IMC_PimpCharacter"));
+	// if (DefaultContextFinder.Succeeded())
+	// {
+	// 	DefaultMappingContext = DefaultContextFinder.Object;
+	// }
+
+	MoveAction = ConstructorHelpers::FObjectFinder<UInputAction>(TEXT("/Game/_PNP/Gameplay/Input/CharacterInput/IA_Move.IA_Move")).Object;
+	LookAction = ConstructorHelpers::FObjectFinder<UInputAction>(TEXT("/Game/_PNP/Gameplay/Input/CharacterInput/IA_Look.IA_Look")).Object;
+	JumpAction = ConstructorHelpers::FObjectFinder<UInputAction>(TEXT("/Game/_PNP/Gameplay/Input/CharacterInput/IA_Jump.IA_Jump")).Object;
+	InteractAction = ConstructorHelpers::FObjectFinder<UInputAction>(TEXT("/Game/_PNP/Gameplay/Input/CharacterInput/IA_Interact.IA_Interact")).Object;
+	SprintAction = ConstructorHelpers::FObjectFinder<UInputAction>(TEXT("/Game/_PNP/Gameplay/Input/CharacterInput/IA_Sprint.IA_Sprint")).Object;
+	AimAction = ConstructorHelpers::FObjectFinder<UInputAction>(TEXT("/Game/_PNP/Gameplay/Input/CharacterInput/IA_Aim.IA_Aim")).Object;
 
 	bReplicates = true;
 
@@ -45,20 +58,13 @@ APnPPlayerCharacter::APnPPlayerCharacter()
 void APnPPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	LastCameraLocation = FirstPersonCamera->GetRelativeLocation();
+	LastCameraRotation = FirstPersonCamera->GetRelativeRotation();
 }
 
 void APnPPlayerCharacter::OnRep_CharacterAimState()
 {
-	if (CharacterAimState == AIM_FOCUSED)
-	{
-		GetCharacterMovement()->bOrientRotationToMovement = false;
-		GetCharacterMovement()->bUseControllerDesiredRotation = true;
-	}
-	else
-	{
-		GetCharacterMovement()->bOrientRotationToMovement = true;
-		GetCharacterMovement()->bUseControllerDesiredRotation = false;
-	}
 }
 
 void APnPPlayerCharacter::Tick(const float pDeltaTime)
@@ -69,8 +75,37 @@ void APnPPlayerCharacter::Tick(const float pDeltaTime)
 
 	GetCharacterMovement()->MaxWalkSpeed = finalMoveSpeed;
 
-	const float targetFOV = (CharacterAimState == AIM_FOCUSED) ? 75.0f : 90.0f;
-	FirstPersonCamera->SetFieldOfView(FMath::Lerp(FirstPersonCamera->FieldOfView, targetFOV, pDeltaTime * 10.0f));
+	if (IsLocallyControlled())
+	{
+		if (bSmoothCamera)
+		{
+			const FVector currentLocation = FirstPersonCamera->GetRelativeLocation();
+			const FRotator currentRotation = FirstPersonCamera->GetRelativeRotation();
+
+			const FVector smoothedLocation = FMath::VInterpTo(LastCameraLocation, currentLocation, pDeltaTime, CameraSmoothingSpeed);
+			const FRotator smoothedRotation = FMath::RInterpTo(LastCameraRotation, currentRotation, pDeltaTime, CameraSmoothingSpeed);
+        
+			FirstPersonCamera->SetRelativeLocationAndRotation(smoothedLocation, smoothedRotation);
+        
+			LastCameraLocation = smoothedLocation;
+			LastCameraRotation = smoothedRotation;
+		}
+
+		const float targetFOV = (CharacterAimState == AIM_FOCUSED) ? 75.0f : 90.0f;
+		const float interpSpeed = 10.0f;
+    
+		float newFOV = FMath::FInterpTo(
+			FirstPersonCamera->FieldOfView, 
+			targetFOV, 
+			pDeltaTime, 
+			interpSpeed
+		);
+    
+		if (!FMath::IsNearlyEqual(FirstPersonCamera->FieldOfView, newFOV, 0.01f))
+		{
+			FirstPersonCamera->SetFieldOfView(targetFOV);
+		}	
+	}
 }
 
 void APnPPlayerCharacter::Jump()

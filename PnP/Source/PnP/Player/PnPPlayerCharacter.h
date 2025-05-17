@@ -70,21 +70,19 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "PNP | Components", meta = (AllowPrivateAccess = "true"))
 	UPnPInteractionComponent* InteractionComponent;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputMappingContext* DefaultMappingContext;
+	TObjectPtr<UInputMappingContext> DefaultMappingContext;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* MoveAction;
+	TObjectPtr<UInputAction> MoveAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* LookAction;
+	TObjectPtr<UInputAction> LookAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* JumpAction;
+	TObjectPtr<UInputAction> JumpAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* InteractAction;
+	TObjectPtr<UInputAction> InteractAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* SprintAction;
+	TObjectPtr<UInputAction> SprintAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* ZoomAction;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* AimAction;
+	TObjectPtr<UInputAction> AimAction;
 
 	UPROPERTY(BlueprintAssignable, Category = "Aim|Events")
 	FOnEnterAimState OnEnterAimState;
@@ -99,6 +97,7 @@ protected:
 	void ToggleSprint(const FInputActionValue& pValue);
 	void Aim(const FInputActionValue& pValue);
 	void CancelAim(const FInputActionValue& pValue);
+	
 
 	UPROPERTY(BlueprintReadOnly, Replicated)
 	TEnumAsByte<ECharacterLocomotionState> CharacterState;
@@ -117,6 +116,13 @@ protected:
 	
 	UFUNCTION()
 	void OnRep_CharacterAimState();
+
+	FVector LastCameraLocation;
+	FRotator LastCameraRotation;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Camera)
+	float CameraSmoothingSpeed = 10.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Camera)
+	bool bSmoothCamera = true;
 
 public:
 	virtual void Tick(float pDeltaTime) override;
@@ -147,6 +153,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Character")
 	UPnPBusinessManagerComponent* GetBusinessComponent() const { return BusinessComponent; }
 
+
+	//SERVER
+	
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerSetCharacterState(ECharacterLocomotionState pNewState);
 
@@ -158,4 +167,6 @@ public:
 
 	UFUNCTION(Server, Unreliable)
 	void ServerSetCameraPitch(float pCameraPitch);
+
+	//CLIENT
 };
