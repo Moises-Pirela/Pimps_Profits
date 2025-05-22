@@ -28,6 +28,8 @@ void UPnPInteractableComponent::MulticastInteractionStart_Implementation(AActor*
 
 	if (InteractableType == INTERACTABLE_PICK_UP)
 	{
+		//TODO: THIS IS EQUIP, CHANGE TO ADD TO INVENTORY
+		//THIS IS TEMPORARY, FOR TESTING 
 		auto pimpCharacter = Cast<APnPPlayerCharacter>(InteractingActor);
 
 		auto capsule = GetOwner()->GetComponentByClass<UCapsuleComponent>();
@@ -41,7 +43,9 @@ void UPnPInteractableComponent::MulticastInteractionStart_Implementation(AActor*
 
 	else if (InteractableType == INTERACTABLE_USE)
 	{
-		
+		//PAY STRIPPERS
+		//OPEN DOORS
+		//GET INTO CARS
 	}
 
 	else if (InteractableType == INTERACTABLE_TALK)
