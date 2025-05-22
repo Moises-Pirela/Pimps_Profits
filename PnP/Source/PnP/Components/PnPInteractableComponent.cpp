@@ -15,7 +15,6 @@ UPnPInteractableComponent::UPnPInteractableComponent()
 
 	CurrentInteractor = nullptr;
 	bIsInUse = false;
-	InteractionProgress = 0.0f;
 
 	PrimaryComponentTick.bCanEverTick = false;
 
@@ -54,11 +53,21 @@ void UPnPInteractableComponent::MulticastInteractionStart_Implementation(AActor*
 	}
 }
 
+void UPnPInteractableComponent::ServerAddInteraction_Implementation(FInteractionRequest pRequest)
+{
+	InteractionRequests.Add(pRequest);
+}
+
+bool UPnPInteractableComponent::ServerAddInteraction_Validate(FInteractionRequest pRequest)
+{
+	return InteractionRequests.Contains(pRequest) || InteractionRequests.Num() >= MAX_INTERACTIONS;
+}
+
 void UPnPInteractableComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(UPnPInteractableComponent, CurrentInteractor);
 	DOREPLIFETIME(UPnPInteractableComponent, bIsInUse);
-	DOREPLIFETIME(UPnPInteractableComponent, InteractionProgress);
+	DOREPLIFETIME(UPnPInteractableComponent, InteractionRequests);
 }

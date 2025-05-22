@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "EntityView.h"
 #include "Flags.h"
+#include "Archetypes/Archetype.h"
 #include "UObject/Object.h"
 #include "EntityStorage.generated.h"
 
@@ -33,7 +34,6 @@ public:
 	TArray<UUnrealEntity*> Entities;
 	UPROPERTY(Replicated)
 	TArray<FArchetype> Archetypes;
-	
 	UPROPERTY()
 	TMap<uint32, int32> SignatureToArchetypeIndex;
 
@@ -47,25 +47,78 @@ public:
 	bool IsServer() const;
 	bool IsClientEntity(int32 EntityId) const;
 	bool CanModifyEntity(int32 EntityId) const;
+	void EnsureArchetypeExists(const FComponentFlags& Signature);
+	void AddEntityToMatchingArchetypes(int32 EntityId);
+	void InitializeStorage();
+	void SyncComponentToECS(UPnPComponentBase* Component, int32 EntityId);
 
-	template<typename... ComponentTypes>
+	template <typename... ComponentTypes>
 	FEntityView GetEntitiesWith()
 	{
 		FComponentFlags signature;
+
+		// Check if all component types are registered first
+		bool bAllComponentsRegistered = true;
+		((bAllComponentsRegistered = bAllComponentsRegistered && ComponentTypeIdMap.Contains(
+			ComponentTypes::StaticClass())), ...);
+
+		if (!bAllComponentsRegistered)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("GetEntitiesWith: One or more component types not registered"));
+			return FEntityView(nullptr);
+		}
+
+		// Build signature
 		(signature.AddFlag(ComponentTypeIdMap[ComponentTypes::StaticClass()]), ...);
-        
-		// O(1) lookup for matching archetype
+
+		// Ensure the archetype exists for this signature
+		EnsureArchetypeExists(signature);
+
+		// Now we know the archetype exists, so look it up
 		int32* archetypeIdx = SignatureToArchetypeIndex.Find(signature.value);
 		if (archetypeIdx)
 		{
 			return FEntityView(&Archetypes[*archetypeIdx]);
 		}
-        
-		return FEntityView(nullptr); // Empty view
+
+		// This should never happen after EnsureArchetypeExists
+		UE_LOG(LogTemp, Error, TEXT("Failed to find archetype after ensuring it exists"));
+		return FEntityView(nullptr);
 	}
 
-	void InitializeStorage();
-	void SyncComponentToECS(UPnPComponentBase* Component, int32 EntityId);
+	UFUNCTION(BlueprintCallable)
+	FComponentFlags BuildSignature(const TArray<UClass*>& ComponentClasses)
+	{
+		return FComponentFlags::FromComponentClasses(ComponentClasses, ComponentTypeIdMap);
+	}
+
+	// Template version for compile-time safety
+	template<typename... ComponentTypes>
+	FComponentFlags BuildSignature()
+	{
+		return FComponentFlags::FromComponentTypes<ComponentTypes...>(ComponentTypeIdMap);
+	}
+
+	// Quick archetype creation
+	UFUNCTION(BlueprintCallable)
+	int32 FindOrCreateArchetype(const TArray<UClass*>& ComponentClasses)
+	{
+		FComponentFlags signature = BuildSignature(ComponentClasses);
+        
+		int32* existingIdx = SignatureToArchetypeIndex.Find(signature.value);
+		if (existingIdx)
+		{
+			return *existingIdx;
+		}
+
+		// Create new archetype
+		int32 newIdx = Archetypes.AddDefaulted();
+		FArchetype& newArchetype = Archetypes[newIdx];
+		newArchetype.Signature = signature;
+        
+		SignatureToArchetypeIndex.Add(signature.value, newIdx);
+		return newIdx;
+	}
 
 private:
 

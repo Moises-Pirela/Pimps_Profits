@@ -104,4 +104,38 @@ struct FComponentFlags
 			bitPos++;
 		}
 	}
+
+	static FComponentFlags FromComponentClasses(const TArray<UClass*>& ComponentClasses, const TMap<UClass*, int>& ComponentTypeIdMap)
+	{
+		FComponentFlags signature;
+		for (UClass* ComponentClass : ComponentClasses)
+		{
+			if (const int* TypeId = ComponentTypeIdMap.Find(ComponentClass))
+			{
+				signature.AddFlag(*TypeId);
+			}
+		}
+		return signature;
+	}
+
+	template<typename... ComponentTypes>
+	static FComponentFlags FromComponentTypes(const TMap<UClass*, int>& ComponentTypeIdMap)
+	{
+		FComponentFlags signature;
+		((signature.AddFlag(ComponentTypeIdMap[ComponentTypes::StaticClass()])), ...);
+		return signature;
+	}
+
+	static FComponentFlags FromClasses(std::initializer_list<UClass*> ComponentClasses, const TMap<UClass*, int>& ComponentTypeIdMap)
+	{
+		FComponentFlags signature;
+		for (UClass* ComponentClass : ComponentClasses)
+		{
+			if (const int* TypeId = ComponentTypeIdMap.Find(ComponentClass))
+			{
+				signature.AddFlag(*TypeId);
+			}
+		}
+		return signature;
+	}
 };

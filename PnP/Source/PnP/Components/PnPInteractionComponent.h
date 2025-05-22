@@ -6,7 +6,6 @@
 #include "PnPComponentBase.h"
 #include "PnPInteractionComponent.generated.h"
 
-
 class UPnPInteractableComponent;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractableEvent, UPnPInteractableComponent*, Interactable);
 

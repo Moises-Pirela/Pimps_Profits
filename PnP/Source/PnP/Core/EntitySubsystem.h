@@ -5,9 +5,11 @@
 #include "CoreMinimal.h"
 #include "ComponentArray.h"
 #include "EntityStorage.h"
+#include "UnrealEntity.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "EntitySubsystem.generated.h"
 
+class UPnPSystemBase;
 class UEntityStorage;
 /**
  * 
@@ -20,6 +22,9 @@ class PNP_API UEntitySubsystem : public UTickableWorldSubsystem
 public:
 	UPROPERTY(Replicated)
 	UEntityStorage* EntityStorage;
+
+	UPROPERTY(Replicated)
+	TArray<UPnPSystemBase*> Systems;
 
 	virtual void Initialize(FSubsystemCollectionBase& pCollection) override;
 	virtual void Tick(float pDeltaTime) override;

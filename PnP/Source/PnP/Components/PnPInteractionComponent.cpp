@@ -196,7 +196,9 @@ void UPnPInteractionComponent::ServerBeginInteraction_Implementation()
 
 	if (interactable && interactable->CanBeInteractedWith(GetOwner()))
 	{
-		interactable->MulticastInteractionStart(GetOwner());
+		FInteractionRequest request = FInteractionRequest();
+		request.interactorEntityId = 0;
+		interactable->ServerAddInteraction(request);
 	}
 }
 

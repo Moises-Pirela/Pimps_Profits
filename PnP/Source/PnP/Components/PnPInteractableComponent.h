@@ -16,6 +16,26 @@ enum EInteractableType
     INTERACTABLE_TALK
 };
 
+USTRUCT(BlueprintType)
+struct FInteractionRequest
+{
+    GENERATED_BODY()
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+    int interactorEntityId = -1;
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+    int targetEntityId = -1;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    float requestTime;
+
+    bool operator==(const FInteractionRequest& Other) const
+    {
+        return interactorEntityId == Other.interactorEntityId &&
+            FMath::IsNearlyEqual(requestTime, Other.requestTime, 0.01f) &&
+            targetEntityId == Other.targetEntityId;
+    }
+};
+
 // Delegate declarations
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractorEvent, AActor*, Interactor);
 
@@ -26,6 +46,13 @@ class PNP_API UPnPInteractableComponent : public UPnPComponentBase
 
 public:
     UPnPInteractableComponent();
+
+  
+
+    static constexpr int MAX_INTERACTIONS = 1;
+
+    UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadWrite)
+    TArray<FInteractionRequest> InteractionRequests;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     TEnumAsByte<EInteractableType> InteractableType;
@@ -49,23 +76,8 @@ public:
     UPROPERTY(Replicated, BlueprintReadOnly, Category = "Interaction|Runtime")
     bool bIsInUse;
     
-    UPROPERTY(Replicated, BlueprintReadOnly, Category = "Interaction|Runtime")
-    float InteractionProgress;
-    
-    UPROPERTY(BlueprintAssignable)
-    FOnInteractorEvent OnBeginFocus;
-    
-    UPROPERTY(BlueprintAssignable)
-    FOnInteractorEvent OnEndFocus;
-    
     UPROPERTY(BlueprintAssignable)
     FOnInteractorEvent OnInteractionStarted;
-    
-    UPROPERTY(BlueprintAssignable)
-    FOnInteractorEvent OnInteractionEnded;
-    
-    UPROPERTY(BlueprintAssignable)
-    FOnInteractorEvent OnInteractionCompleted;
     
     UFUNCTION(BlueprintNativeEvent, Category = "Interaction")
     bool CanBeInteractedWith(AActor* InteractingActor) const;
@@ -75,6 +87,9 @@ public:
     
     UFUNCTION(BlueprintPure, Category = "Interaction")
     FText GetInteractionText() const { return InteractionPrompt; }
+    
+    UFUNCTION(Server, Unreliable, WithValidation)
+    void ServerAddInteraction(FInteractionRequest pRequest);
     
     // Replication setup
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;

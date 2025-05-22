@@ -1,6 +1,5 @@
 ﻿#pragma once
-#include "Archetype.h"
-#include "UnrealEntity.h"
+#include "Archetypes/Archetype.h"
 
 class UEntityStorage;
 

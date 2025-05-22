@@ -4,6 +4,7 @@
 #include "EntitySubsystem.h"
 
 #include "Net/UnrealNetwork.h"
+#include "PnP/Systems/InteractionSystem.h"
 
 void UEntitySubsystem::Initialize(FSubsystemCollectionBase& pCollection)
 {
@@ -11,11 +12,19 @@ void UEntitySubsystem::Initialize(FSubsystemCollectionBase& pCollection)
 
 	EntityStorage = NewObject<UEntityStorage>(this);
 	EntityStorage->InitializeStorage();
+
+	UInteractionSystem* InteractionSystem = NewObject<UInteractionSystem>(this);
+	Systems.Add(InteractionSystem);
 }
 
 void UEntitySubsystem::Tick(float pDeltaTime)
 {
 	Super::Tick(pDeltaTime);
+
+	for (auto system : Systems)
+	{
+		system->Process(EntityStorage, pDeltaTime);
+	}
 }
 
 TStatId UEntitySubsystem::GetStatId() const
@@ -28,6 +37,7 @@ void UEntitySubsystem::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(UEntitySubsystem, EntityStorage);
+	DOREPLIFETIME(UEntitySubsystem, Systems);
 }
 
 void UEntitySubsystem::ServerCreateEntity_Implementation(UUnrealEntity* EntityTemplate)

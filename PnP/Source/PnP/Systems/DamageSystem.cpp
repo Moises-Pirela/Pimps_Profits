@@ -10,8 +10,6 @@
 
 void UDamageSystem::Process(UEntityStorage* EntityStorage, float DeltaTime)
 {
-	Super::Process(EntityStorage, DeltaTime);
-
 	auto healthEntities = EntityStorage->GetEntitiesWith<UPnPHealthComponent>();
 
 	for (auto entity : healthEntities)

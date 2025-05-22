@@ -6,10 +6,13 @@
 #include "ComponentArray.h"
 #include "EntitySubsystem.h"
 #include "UnrealEntity.h"
+#include "Archetypes/Archetype.h"
 #include "GameFramework/PlayerState.h"
 #include "Net/UnrealNetwork.h"
 #include "PnP/PnP.h"
 #include "PnP/Components/PnPComponentBase.h"
+#include "PnP/Components/PnPInteractableComponent.h"
+#include "PnP/Utils/Logger.h"
 
 UEntityStorage::UEntityStorage()
 {
@@ -31,6 +34,8 @@ void UEntityStorage::InitializeStorage()
 			if (!ComponentTypeIdMap.Contains(class_))
 			{
 				ComponentTypeIdMap.Add(class_, idCounter++);
+
+				ClockLog(FString("Loaded component type: ") + class_->GetName(), LOG_DEBUG);
 			}
 		}
 	}
@@ -107,24 +112,8 @@ int UEntityStorage::CreateEntity(UUnrealEntity* pUnrealEntity)
 		}
 	}
 
-	for (UPnPComponentBase* component : components)
-	{
-		if (component)
-		{
-			UClass* componentClass = component->GetClass();
-			if (ComponentTypeIdMap.Contains(componentClass))
-			{
-				int componentTypeId = ComponentTypeIdMap[componentClass];
-				Components[componentTypeId].Components[entityId] = component;
-			}
-		}
-	}
-
 	pUnrealEntity->EntityFlags.AddFlag(ENTITY_STATE_ACTIVE);
 	Entities[entityId] = pUnrealEntity;
-
-	FComponentFlags emptySignature;
-	UpdateEntityArchetype(entityId, emptySignature, pUnrealEntity->ComponentSignature);
 
 	return entityId;
 }
@@ -134,11 +123,6 @@ void UEntityStorage::DestroyEntity(int entityId)
 	UUnrealEntity* entity = Entities[entityId];
 	if (!entity)
 		return;
-
-	FComponentFlags oldSignature = entity->ComponentSignature;
-	FComponentFlags emptySignature;
-    
-	UpdateEntityArchetype(entityId, oldSignature, emptySignature);
 	
 	entity->ComponentSignature.ForEachSetBit([this, entityId](int componentTypeId) {
 		Components[componentTypeId].RemoveComponent(entityId);
@@ -152,105 +136,6 @@ void UEntityStorage::DestroyEntity(int entityId)
 
 void UEntityStorage::UpdateEntityArchetype(int32 entityId, FComponentFlags oldSignature, FComponentFlags newSignature)
 {
-    if (oldSignature.value == newSignature.value)
-        return;
-
-    UUnrealEntity* entity = Entities[entityId];
-    if (!entity)
-        return;
-
-    int32 newArchetypeIndex = -1;
-    if (newSignature.value != 0)
-    {
-        int32* existingArchetypeIndex = SignatureToArchetypeIndex.Find(newSignature.value);
-        if (existingArchetypeIndex)
-        {
-            newArchetypeIndex = *existingArchetypeIndex;
-        }
-        else
-        {
-            newArchetypeIndex = Archetypes.AddDefaulted();
-            FArchetype& newArchetype = Archetypes[newArchetypeIndex];
-            newArchetype.Signature = newSignature;
-            
-            for (auto& Pair : ComponentTypeIdMap)
-            {
-                UClass* componentClass = Pair.Key;
-                int32 componentTypeId = Pair.Value;
-                
-                if (newSignature.HasFlag(componentTypeId))
-                {
-                    newArchetype.ComponentArrays.Add(componentClass, TArray<UPnPComponentBase*>());
-                }
-            }
-            
-            SignatureToArchetypeIndex.Add(newSignature.value, newArchetypeIndex);
-        }
-    }
-
-    if (oldSignature.value != 0)
-    {
-        int32* oldArchetypeIndex = SignatureToArchetypeIndex.Find(oldSignature.value);
-        if (oldArchetypeIndex && *oldArchetypeIndex >= 0 && *oldArchetypeIndex < Archetypes.Num())
-        {
-            FArchetype& oldArchetype = Archetypes[*oldArchetypeIndex];
-            
-            int32 oldEntityIndex = oldArchetype.EntityIds.Find(entityId);
-            if (oldEntityIndex != INDEX_NONE)
-            {
-                oldArchetype.EntityIds.RemoveAt(oldEntityIndex);
-                
-                for (auto& ComponentPair : oldArchetype.ComponentArrays)
-                {
-                    TArray<UPnPComponentBase*>& componentArray = ComponentPair.Value;
-                    if (componentArray.IsValidIndex(oldEntityIndex))
-                    {
-                        componentArray.RemoveAt(oldEntityIndex);
-                    }
-                }
-                
-                // Optionally: Remove empty archetypes
-                if (oldArchetype.EntityIds.Num() == 0)
-                {
-                    // If we want to remove empty archetypes, do it here
-                    // For now, we'll keep them to avoid map reindexing complexity
-                }
-            }
-        }
-    }
-
-    if (newArchetypeIndex != -1)
-    {
-        FArchetype& newArchetype = Archetypes[newArchetypeIndex];
-        
-        newArchetype.EntityIds.Add(entityId);
-        
-        for (auto& ComponentPair : newArchetype.ComponentArrays)
-        {
-            UClass* componentClass = ComponentPair.Key;
-            TArray<UPnPComponentBase*>& componentArray = ComponentPair.Value;
-            
-            int32* componentTypeIdPtr = ComponentTypeIdMap.Find(componentClass);
-            if (componentTypeIdPtr)
-            {
-                int32 componentTypeId = *componentTypeIdPtr;
-                UPnPComponentBase* component = Components[componentTypeId].Components[entityId];
-                
-                if (component)
-                {
-                    componentArray.Add(component);
-                }
-                else
-                {
-                    componentArray.Add(nullptr);
-                    UE_LOG(LogTemp, Warning, TEXT("Entity %d has signature for component %s but component is null"), 
-                           entityId, *componentClass->GetName());
-                }
-            }
-        }
-    }
-
-    entity->ComponentSignature = newSignature;
 }
 
 void UEntityStorage::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
@@ -287,4 +172,67 @@ bool UEntityStorage::CanModifyEntity(int32 EntityId) const
 	}
     
 	return IsClientEntity(EntityId);
+}
+
+void UEntityStorage::EnsureArchetypeExists(const FComponentFlags& Signature)
+{
+	if (SignatureToArchetypeIndex.Contains(Signature.value))
+		return;
+
+	int32 newIdx = Archetypes.AddDefaulted();
+	FArchetype& newArchetype = Archetypes[newIdx];
+	newArchetype.Signature = Signature;
+    
+	// Initialize component arrays for this signature
+	for (auto& Pair : ComponentTypeIdMap)
+	{
+		UClass* componentClass = Pair.Key;
+		int32 componentTypeId = Pair.Value;
+        
+		if (Signature.HasFlag(componentTypeId))
+		{
+			newArchetype.ComponentArrays.Add(componentClass, TArray<UPnPComponentBase*>());
+		}
+	}
+    
+	SignatureToArchetypeIndex.Add(Signature.value, newIdx);
+    
+	// Add all existing matching entities to this archetype
+	for (int32 i = 0; i < Entities.Num(); ++i)
+	{
+		if (Entities[i] && Entities[i]->ComponentSignature.MatchesSignature(Signature))
+		{
+			newArchetype.EntityIds.Add(i);
+		}
+	}
+}
+
+void UEntityStorage::AddEntityToMatchingArchetypes(int32 EntityId)
+{
+	UUnrealEntity* entity = Entities[EntityId];
+	if (!entity)
+		return;
+
+	for (FArchetype& archetype : Archetypes)
+	{
+		if (entity->ComponentSignature.MatchesSignature(archetype.Signature))
+		{
+			if (!archetype.EntityIds.Contains(EntityId))
+			{
+				archetype.EntityIds.Add(EntityId);
+                
+				for (auto& ComponentPair : archetype.ComponentArrays)
+				{
+					UClass* componentClass = ComponentPair.Key;
+					int32* componentTypeId = ComponentTypeIdMap.Find(componentClass);
+                    
+					if (componentTypeId)
+					{
+						UPnPComponentBase* component = Components[*componentTypeId].Components[EntityId];
+						ComponentPair.Value.Add(component);
+					}
+				}
+			}
+		}
+	}
 }

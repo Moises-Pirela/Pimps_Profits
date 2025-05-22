@@ -17,7 +17,7 @@ class PNP_API UUnrealEntity : public UActorComponent
 public:
 	UUnrealEntity();
 
-	UPROPERTY(Replicated)
+	UPROPERTY(VisibleAnywhere, Replicated)
 	int EntityId;
 
 	UPROPERTY(Replicated)
