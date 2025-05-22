@@ -8,6 +8,14 @@
 // Forward declarations
 class UPnPInteractionComponent;
 
+UENUM(BlueprintType)
+enum EInteractableType
+{
+    INTERACTABLE_USE,
+    INTERACTABLE_PICK_UP,
+    INTERACTABLE_TALK
+};
+
 // Delegate declarations
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractorEvent, AActor*, Interactor);
 
@@ -18,6 +26,9 @@ class PNP_API UPnPInteractableComponent : public UPnPComponentBase
 
 public:
     UPnPInteractableComponent();
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    TEnumAsByte<EInteractableType> InteractableType;
 
     // Data properties
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction")
@@ -59,22 +70,9 @@ public:
     UFUNCTION(BlueprintNativeEvent, Category = "Interaction")
     bool CanBeInteractedWith(AActor* InteractingActor) const;
     
-    UFUNCTION(BlueprintNativeEvent, Category = "Interaction")
-    void HandleFocusBegin(AActor* InteractingActor);
+    UFUNCTION(NetMulticast, Reliable, Category = "Interaction")
+    void MulticastInteractionStart(AActor* InteractingActor);
     
-    UFUNCTION(BlueprintNativeEvent, Category = "Interaction")
-    void HandleFocusEnd(AActor* InteractingActor);
-    
-    UFUNCTION(BlueprintNativeEvent, Category = "Interaction")
-    void HandleInteractionStart(AActor* InteractingActor);
-    
-    UFUNCTION(BlueprintNativeEvent, Category = "Interaction")
-    void HandleInteractionEnd(AActor* InteractingActor);
-    
-    UFUNCTION(BlueprintNativeEvent, Category = "Interaction")
-    void HandleInteractionComplete(AActor* InteractingActor);
-    
-    // Helper methods
     UFUNCTION(BlueprintPure, Category = "Interaction")
     FText GetInteractionText() const { return InteractionPrompt; }
     
@@ -83,8 +81,3 @@ public:
 };
 
 inline bool UPnPInteractableComponent::CanBeInteractedWith_Implementation(AActor* InteractingActor) const { return true; }
-inline void UPnPInteractableComponent::HandleFocusBegin_Implementation(AActor* InteractingActor) { OnBeginFocus.Broadcast(InteractingActor); }
-inline void UPnPInteractableComponent::HandleFocusEnd_Implementation(AActor* InteractingActor) { OnEndFocus.Broadcast(InteractingActor); }
-inline void UPnPInteractableComponent::HandleInteractionStart_Implementation(AActor* InteractingActor) { OnInteractionStarted.Broadcast(InteractingActor); }
-inline void UPnPInteractableComponent::HandleInteractionEnd_Implementation(AActor* InteractingActor) { OnInteractionEnded.Broadcast(InteractingActor); }
-inline void UPnPInteractableComponent::HandleInteractionComplete_Implementation(AActor* InteractingActor) { OnInteractionCompleted.Broadcast(InteractingActor); }

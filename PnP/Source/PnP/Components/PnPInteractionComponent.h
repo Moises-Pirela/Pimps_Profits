@@ -8,7 +8,7 @@
 
 
 class UPnPInteractableComponent;
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractableEvent, AActor*, Interactable);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractableEvent, UPnPInteractableComponent*, Interactable);
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class PNP_API UPnPInteractionComponent : public UPnPComponentBase
@@ -41,6 +41,7 @@ protected:
     
 	// Trace for interactive objects
 	void PerformInteractionTrace();
+	bool IsOwnerLocallyControlled() const;
 
 public:
 
@@ -52,14 +53,10 @@ public:
 	
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
     
-	// Override GetLifetimeReplicatedProps to setup replication
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-    
-	// Start interaction with focused object
-	void BeginInteraction();
-    
-	// End interaction with focused object
-	void EndInteraction();
+
+	UFUNCTION(Server, Reliable)
+	void ServerUpdateFocusedObject(int32 EntityId);
     
 	// Server RPC to handle interaction on server
 	UFUNCTION(Server, Reliable, WithValidation)

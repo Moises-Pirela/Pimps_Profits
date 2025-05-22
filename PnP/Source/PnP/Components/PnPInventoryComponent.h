@@ -6,7 +6,7 @@
 #include "PnPComponentBase.h"
 #include "PnPInventoryComponent.generated.h"
 
-static constexpr int MAX_ITEMS = 10;
+class UInventoryItemConfig;
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class PNP_API UPnPInventoryComponent : public UPnPComponentBase
@@ -14,6 +14,8 @@ class PNP_API UPnPInventoryComponent : public UPnPComponentBase
 	GENERATED_BODY()
 
 public:
+	static constexpr int MAX_ITEMS = 10;
+
 	UPnPInventoryComponent();
 
 protected:

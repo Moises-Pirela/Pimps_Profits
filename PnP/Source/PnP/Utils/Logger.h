@@ -18,7 +18,7 @@ inline FColor logColorLookUp[LOG_MAX]
 
 DECLARE_LOG_CATEGORY_EXTERN(LogClock, Log, All);
 
-static void ClockLog(const FString& message, const ELogLevel level = LOG_INFO, const bool bOnScreen = true)
+static void ClockLog(const FString& message, const ELogLevel level = LOG_INFO, const bool bOnScreen = true, int logKey = -1)
 {
 	switch(level)
 	{
@@ -39,7 +39,7 @@ static void ClockLog(const FString& message, const ELogLevel level = LOG_INFO, c
 	if(bOnScreen)
 	{
 		GEngine->AddOnScreenDebugMessage(
-			-1,
+			logKey,
 			5.0f,
 			logColorLookUp[level],
 			message

@@ -37,12 +37,6 @@ APnPPlayerCharacter::APnPPlayerCharacter()
 	BusinessComponent = CreateDefaultSubobject<UPnPBusinessManagerComponent>(TEXT("BusinessComponent"));
 	NetworkComponent = CreateDefaultSubobject<UPnPNetworkIdentityComponent>(TEXT("NetworkComponent"));
 
-	// static ConstructorHelpers::FObjectFinder<UInputMappingContext> DefaultContextFinder(TEXT("/Game/_PNP/Gameplay/Input/CharacterInput/IMC_PimpCharacter.IMC_PimpCharacter"));
-	// if (DefaultContextFinder.Succeeded())
-	// {
-	// 	DefaultMappingContext = DefaultContextFinder.Object;
-	// }
-
 	MoveAction = ConstructorHelpers::FObjectFinder<UInputAction>(TEXT("/Game/_PNP/Gameplay/Input/CharacterInput/IA_Move.IA_Move")).Object;
 	LookAction = ConstructorHelpers::FObjectFinder<UInputAction>(TEXT("/Game/_PNP/Gameplay/Input/CharacterInput/IA_Look.IA_Look")).Object;
 	JumpAction = ConstructorHelpers::FObjectFinder<UInputAction>(TEXT("/Game/_PNP/Gameplay/Input/CharacterInput/IA_Jump.IA_Jump")).Object;
@@ -61,6 +55,8 @@ void APnPPlayerCharacter::BeginPlay()
 
 	LastCameraLocation = FirstPersonCamera->GetRelativeLocation();
 	LastCameraRotation = FirstPersonCamera->GetRelativeRotation();
+
+	InteractionComponent = GetComponentByClass<UPnPInteractionComponent>();
 }
 
 void APnPPlayerCharacter::OnRep_CharacterAimState()
@@ -91,7 +87,7 @@ void APnPPlayerCharacter::Tick(const float pDeltaTime)
 			LastCameraRotation = smoothedRotation;
 		}
 
-		const float targetFOV = (CharacterAimState == AIM_FOCUSED) ? 75.0f : 90.0f;
+		const float targetFOV = (CharacterAimState == AIM_FOCUSED) ? 75.0f : 120.0f;
 
 		if (targetFOV != FirstPersonCamera->FieldOfView)
 		{
@@ -169,16 +165,16 @@ void APnPPlayerCharacter::Move(const FInputActionValue& pValue)
 {
 	if (Controller != nullptr && CharacterState == MOTION_GROUNDED)
 	{
-		const FVector2D Movement_Vector = pValue.Get<FVector2D>();
+		const FVector2D movementVector = pValue.Get<FVector2D>();
 
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FRotator Yaw_Rotation(0, Rotation.Yaw, 0);
+		const FRotator rotation = Controller->GetControlRotation();
+		const FRotator yawRotation(0, rotation.Yaw, 0);
 
-		const FVector Forward_Direction = FRotationMatrix(Yaw_Rotation).GetUnitAxis(EAxis::X);
-		const FVector Right_Direction = FRotationMatrix(Yaw_Rotation).GetUnitAxis(EAxis::Y);
+		const FVector forwardDirection = FRotationMatrix(yawRotation).GetUnitAxis(EAxis::X);
+		const FVector rightDirection = FRotationMatrix(yawRotation).GetUnitAxis(EAxis::Y);
 
-		AddMovementInput(Forward_Direction, Movement_Vector.Y);
-		AddMovementInput(Right_Direction, Movement_Vector.X);
+		AddMovementInput(forwardDirection, movementVector.Y);
+		AddMovementInput(rightDirection, movementVector.X);
 	}
 }
 
@@ -186,30 +182,27 @@ void APnPPlayerCharacter::Look(const FInputActionValue& pValue)
 {
 	if (Controller != nullptr)
 	{
-		const FVector2D _look_axis_vector = pValue.Get<FVector2D>();
+		const FVector2D lookAxisVector = pValue.Get<FVector2D>();
 
-		AddControllerYawInput(_look_axis_vector.X);
-		AddControllerPitchInput(_look_axis_vector.Y);
+		AddControllerYawInput(lookAxisVector.X);
+		AddControllerPitchInput(lookAxisVector.Y);
 
-		CameraPitch = FMath::Clamp(CameraPitch + _look_axis_vector.Y, -18, 18.0f);
+		CameraPitch = FMath::Clamp(CameraPitch + lookAxisVector.Y, -18, 18.0f);
 	}
 }
 
 void APnPPlayerCharacter::Interact(const FInputActionValue& pValue)
 {
-	// if (InteractionComponent->HasFocus())
-	// {
-	// 	InteractionComponent->BeginInteraction();
-	// }
+	InteractionComponent->ServerBeginInteraction();
 }
 
 void APnPPlayerCharacter::ToggleSprint(const FInputActionValue& pValue)
 {
-	bool bShould_Sprint = GaitState != GAIT_SPRINT;
+	bool bShouldSprint = GaitState != GAIT_SPRINT;
 
 	if (GetLocalRole() == ROLE_Authority)
 	{
-		if (bShould_Sprint)
+		if (bShouldSprint)
 		{
 			GaitState = GAIT_SPRINT;
 		}
@@ -220,8 +213,8 @@ void APnPPlayerCharacter::ToggleSprint(const FInputActionValue& pValue)
 	}
 	else
 	{
-		EGaitState _new_state = bShould_Sprint ? GAIT_SPRINT : GAIT_NORMAL;
-		ServerSetCharacterMovementState(_new_state);
+		EGaitState newState = bShouldSprint ? GAIT_SPRINT : GAIT_NORMAL;
+		ServerSetCharacterMovementState(newState);
 	}
 }
 
@@ -259,43 +252,43 @@ void APnPPlayerCharacter::SetupPlayerInputComponent(UInputComponent* pPlayerInpu
 {
 	Super::SetupPlayerInputComponent(pPlayerInputComponent);
 
-	if (APlayerController* _player_controller = Cast<APlayerController>(GetController()))
+	if (APlayerController* playerController = Cast<APlayerController>(GetController()))
 	{
 		UEnhancedInputLocalPlayerSubsystem* _subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(
-			_player_controller->GetLocalPlayer());
+			playerController->GetLocalPlayer());
 		if (_subsystem)
 		{
 			_subsystem->ClearAllMappings();
-			_subsystem->AddMappingContext(DefaultMappingContext, 0);
+			_subsystem->AddMappingContext(StandardMappingContext, 0);
 		}
 	}
 
-	if (UEnhancedInputComponent* _enhanced_input_component = CastChecked<
+	if (UEnhancedInputComponent* enhancedInputComponent = CastChecked<
 		UEnhancedInputComponent>(pPlayerInputComponent))
 	{
 		// Movement
-		_enhanced_input_component->BindAction(MoveAction, ETriggerEvent::Triggered, this, &APnPPlayerCharacter::Move);
+		enhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &APnPPlayerCharacter::Move);
 
 		// Looking
-		_enhanced_input_component->BindAction(LookAction, ETriggerEvent::Triggered, this, &APnPPlayerCharacter::Look);
+		enhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &APnPPlayerCharacter::Look);
 
 		// Jumping
-		_enhanced_input_component->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
-		_enhanced_input_component->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
+		enhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
+		enhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 
 		// Interaction
-		_enhanced_input_component->BindAction(InteractAction, ETriggerEvent::Started, this,
+		enhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this,
 		                                      &APnPPlayerCharacter::Interact);
 
 		// Sprinting
-		_enhanced_input_component->BindAction(SprintAction, ETriggerEvent::Started, this,
+		enhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this,
 		                                      &APnPPlayerCharacter::ToggleSprint);
-		_enhanced_input_component->BindAction(SprintAction, ETriggerEvent::Completed, this,
+		enhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this,
 		                                      &APnPPlayerCharacter::ToggleSprint);
 
 		// Aiming
-		_enhanced_input_component->BindAction(AimAction, ETriggerEvent::Started, this, &APnPPlayerCharacter::Aim);
-		_enhanced_input_component->BindAction(AimAction, ETriggerEvent::Completed, this,
+		enhancedInputComponent->BindAction(AimAction, ETriggerEvent::Started, this, &APnPPlayerCharacter::Aim);
+		enhancedInputComponent->BindAction(AimAction, ETriggerEvent::Completed, this,
 		                                      &APnPPlayerCharacter::CancelAim);
 
 		// Primary Fire
@@ -346,13 +339,13 @@ bool APnPPlayerCharacter::ServerSetCharacterAimState_Validate(ECharacterAimState
 
 void APnPPlayerCharacter::GetAimOffsets(float& pOutPitch, float& pOutYaw)
 {
-	FRotator ControlRot = GetControlRotation();
-	FRotator ActorRot = GetActorRotation();
+	FRotator controlRot = GetControlRotation();
+	FRotator actorRot = GetActorRotation();
 
-	FRotator Delta = (ControlRot - ActorRot).GetNormalized();
+	FRotator delta = (controlRot - actorRot).GetNormalized();
 
-	pOutYaw = FMath::ClampAngle(Delta.Yaw, -90.0f, 90.0f);
-	pOutPitch = FMath::ClampAngle(Delta.Pitch, -90.0f, 90.0f);
+	pOutYaw = FMath::ClampAngle(delta.Yaw, -90.0f, 90.0f);
+	pOutPitch = FMath::ClampAngle(delta.Pitch, -90.0f, 90.0f);
 
 
 	if (IsLocallyControlled())
