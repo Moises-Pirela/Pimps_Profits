@@ -115,6 +115,9 @@ int UEntityStorage::CreateEntity(UUnrealEntity* pUnrealEntity)
 	pUnrealEntity->EntityFlags.AddFlag(ENTITY_STATE_ACTIVE);
 	Entities[entityId] = pUnrealEntity;
 
+	EnsureArchetypeExists(pUnrealEntity->ComponentSignature);
+	AddEntityToMatchingArchetypes(entityId);
+
 	return entityId;
 }
 

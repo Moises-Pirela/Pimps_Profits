@@ -12,9 +12,9 @@ void UInteractionSystem::Process(UEntityStorage* EntityStorage, float DeltaTime)
 {
 	if (EntityStorage == nullptr) return;
 
-	auto interactableEntities = EntityStorage->Archetypes[0];
+	auto interactableEntities = EntityStorage->GetEntitiesWith<UPnPInteractableComponent>();
 
-	for (auto entity : interactableEntities.EntityIds)
+	for (auto entity : interactableEntities)
 	{
 		int componentType = EntityStorage->ComponentTypeIdMap[UPnPInteractableComponent::StaticClass()];
 		UPnPInteractableComponent* interactionComponent = static_cast<UPnPInteractableComponent*>(EntityStorage->Components[componentType].Components[entity]);

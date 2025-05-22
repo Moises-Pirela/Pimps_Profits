@@ -60,7 +60,7 @@ void UPnPInteractableComponent::ServerAddInteraction_Implementation(FInteraction
 
 bool UPnPInteractableComponent::ServerAddInteraction_Validate(FInteractionRequest pRequest)
 {
-	return InteractionRequests.Contains(pRequest) || InteractionRequests.Num() >= MAX_INTERACTIONS;
+	return true;//InteractionRequests.Contains(pRequest) || InteractionRequests.Num() >= MAX_INTERACTIONS;
 }
 
 void UPnPInteractableComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
