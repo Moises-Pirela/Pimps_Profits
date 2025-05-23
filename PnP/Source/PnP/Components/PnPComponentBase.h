@@ -17,4 +17,10 @@ public:
 	{
 		SetIsReplicatedByDefault(true);
 	};
+
+	virtual bool IsOwnerLocallyControlled() const
+	{
+		APawn* ownerPawn = Cast<APawn>(GetOwner());
+		return ownerPawn && ownerPawn->IsLocallyControlled();
+	}
 };

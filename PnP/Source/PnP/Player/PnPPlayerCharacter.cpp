@@ -33,7 +33,6 @@ APnPPlayerCharacter::APnPPlayerCharacter()
 	FirstPersonCamera->bUsePawnControlRotation = true; 
 
 	StatsComponent = CreateDefaultSubobject<UPnPCharacterStatsComponent>(TEXT("StatsComponent"));
-	InventoryComponent = CreateDefaultSubobject<UPnPInventoryComponent>(TEXT("InventoryComponent"));
 	BusinessComponent = CreateDefaultSubobject<UPnPBusinessManagerComponent>(TEXT("BusinessComponent"));
 	NetworkComponent = CreateDefaultSubobject<UPnPNetworkIdentityComponent>(TEXT("NetworkComponent"));
 
@@ -51,12 +50,13 @@ APnPPlayerCharacter::APnPPlayerCharacter()
 
 void APnPPlayerCharacter::BeginPlay()
 {
-	Super::BeginPlay();
-
 	LastCameraLocation = FirstPersonCamera->GetRelativeLocation();
 	LastCameraRotation = FirstPersonCamera->GetRelativeRotation();
 
 	InteractionComponent = GetComponentByClass<UPnPInteractionComponent>();
+	InventoryComponent = GetComponentByClass<UPnPInventoryComponent>();
+	
+	Super::BeginPlay();
 }
 
 void APnPPlayerCharacter::OnRep_CharacterAimState()

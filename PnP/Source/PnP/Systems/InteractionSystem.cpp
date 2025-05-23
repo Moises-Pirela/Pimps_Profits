@@ -12,6 +12,11 @@ void UInteractionSystem::Process(UEntityStorage* EntityStorage, float DeltaTime)
 {
 	if (EntityStorage == nullptr) return;
 
+	if (!EntityStorage->IsServer())
+	{
+		return;
+	}
+
 	auto interactableEntities = EntityStorage->GetEntitiesWith<UPnPInteractableComponent>();
 
 	for (auto entity : interactableEntities)
@@ -19,10 +24,11 @@ void UInteractionSystem::Process(UEntityStorage* EntityStorage, float DeltaTime)
 		int componentType = EntityStorage->ComponentTypeIdMap[UPnPInteractableComponent::StaticClass()];
 		UPnPInteractableComponent* interactionComponent = static_cast<UPnPInteractableComponent*>(EntityStorage->Components[componentType].Components[entity]);
 
+		if (interactionComponent == nullptr) continue;
+
 		for (auto& interactionRequest : interactionComponent->InteractionRequests)
 		{
-			auto entityActor = EntityStorage->Entities[interactionRequest.interactorEntityId]->GetOwner();
-			interactionComponent->MulticastInteractionStart(entityActor);
+			interactionComponent->MulticastInteractionStart(interactionRequest.interactorEntityId, interactionRequest.targetEntityId);
 		}
 		
 		interactionComponent->InteractionRequests.Empty();

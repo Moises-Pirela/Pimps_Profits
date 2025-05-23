@@ -116,12 +116,6 @@ void UPnPInteractionComponent::PerformInteractionTrace()
 	}
 }
 
-bool UPnPInteractionComponent::IsOwnerLocallyControlled() const
-{
-	APawn* OwningPawn = Cast<APawn>(GetOwner());
-	return OwningPawn && OwningPawn->IsLocallyControlled();
-}
-
 void UPnPInteractionComponent::TickComponent(float delta_time, ELevelTick tick_type,
                                              FActorComponentTickFunction* this_tick_function)
 {
@@ -191,13 +185,14 @@ void UPnPInteractionComponent::ServerBeginInteraction_Implementation()
 
 	auto entitySubsystem = GetWorld()->GetSubsystem<UEntitySubsystem>();
 
-	UPnPInteractableComponent* interactable = entitySubsystem->GetComponent<UPnPInteractableComponent>(
-		m_focusedInteractiveEntityId);
+	UPnPInteractableComponent* interactable = entitySubsystem->GetComponent<UPnPInteractableComponent>(m_focusedInteractiveEntityId);
 
 	if (interactable && interactable->CanBeInteractedWith(GetOwner()))
 	{
 		FInteractionRequest request = FInteractionRequest();
-		request.interactorEntityId = GetOwner()->GetComponentByClass<UUnrealEntity>()->EntityId;
+		auto entity = GetOwner()->GetComponentByClass<UUnrealEntity>();
+		request.interactorEntityId = entity->EntityId;
+		request.targetEntityId = m_focusedInteractiveEntityId;
 		interactable->ServerAddInteraction(request);
 	}
 }

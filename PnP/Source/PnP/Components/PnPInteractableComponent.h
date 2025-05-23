@@ -47,8 +47,6 @@ class PNP_API UPnPInteractableComponent : public UPnPComponentBase
 public:
     UPnPInteractableComponent();
 
-  
-
     static constexpr int MAX_INTERACTIONS = 1;
 
     UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadWrite)
@@ -83,7 +81,7 @@ public:
     bool CanBeInteractedWith(AActor* InteractingActor) const;
     
     UFUNCTION(NetMulticast, Reliable, Category = "Interaction")
-    void MulticastInteractionStart(AActor* InteractingActor);
+    void MulticastInteractionStart(int interactingEntityId, int targetEntityId);
     
     UFUNCTION(BlueprintPure, Category = "Interaction")
     FText GetInteractionText() const { return InteractionPrompt; }

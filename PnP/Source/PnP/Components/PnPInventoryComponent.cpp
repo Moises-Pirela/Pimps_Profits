@@ -17,6 +17,11 @@ UPnPInventoryComponent::UPnPInventoryComponent()
 void UPnPInventoryComponent::BeginPlay()
 {
 	Super::BeginPlay();
+	for (int i = 0; i < InventorySize; i++)
+	{
+		EquippedEntityIds.Add(-1);
+	}
+	
 }
 
 void UPnPInventoryComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
@@ -25,19 +30,34 @@ void UPnPInventoryComponent::GetLifetimeReplicatedProps(TArray<class FLifetimePr
 
 	DOREPLIFETIME(UPnPInventoryComponent, EquippedEntityIds);
 	DOREPLIFETIME(UPnPInventoryComponent, CurrentEquippedIndex);
+	DOREPLIFETIME(UPnPInventoryComponent, NextAvailableIndex);
+}
+
+void UPnPInventoryComponent::ServerRemoveEquippedItem_Implementation(int slot, int entityId)
+{
+	EquippedEntityIds[slot] = -1;
+
+	NextAvailableIndex = slot;
 }
 
 void UPnPInventoryComponent::ServerAddEquippedItem_Implementation(int slot, int entityId)
 {
-	if (EquippedEntityIds[slot] != -1)
+	if (EquippedEntityIds[NextAvailableIndex] != -1)
 	{
 		auto message = FString::Printf(TEXT("Equipped entity %d"), entityId);
 		ClockLog(message, ELogLevel::LOG_DEBUG, true);
+		return;
 	}
-	else
+
+	EquippedEntityIds[NextAvailableIndex] = entityId;
+
+	for (int i = 0; i < EquippedEntityIds.Num(); i++)
 	{
-		auto message = FString::Printf(TEXT("No Equipped entity %d"), entityId);
-		ClockLog(message, ELogLevel::LOG_DEBUG, true);
+		if (EquippedEntityIds[i] == -1)
+		{
+			NextAvailableIndex = i;
+			break;
+		}
 	}
 }
 

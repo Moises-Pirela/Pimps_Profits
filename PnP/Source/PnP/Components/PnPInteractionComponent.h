@@ -40,7 +40,6 @@ protected:
     
 	// Trace for interactive objects
 	void PerformInteractionTrace();
-	bool IsOwnerLocallyControlled() const;
 
 public:
 

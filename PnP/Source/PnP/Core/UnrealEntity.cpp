@@ -56,7 +56,6 @@ void UUnrealEntity::BeginPlay()
 	const bool bIsServer = GetOwner()->HasAuthority();
 	bIsRemoteEntity = !bIsServer;
 
-	// Set owner client ID if applicable
 	if (AActor* owner = GetOwner())
 	{
 		if (APlayerController* pc = Cast<APlayerController>(owner->GetInstigatorController()))
@@ -67,23 +66,17 @@ void UUnrealEntity::BeginPlay()
 			}
 		}
 	}
-
-	// Register with the ECS system
+	
 	UEntitySubsystem* entitySystem = GetWorld()->GetSubsystem<UEntitySubsystem>();
 	if (entitySystem)
 	{
 		if (bIsServer)
 		{
-			// Server directly registers the entity
 			EntityId = entitySystem->EntityStorage->CreateEntity(this);
 		}
 		else
 		{
-			// Client requests registration via RPC
 			entitySystem->ServerCreateEntity(this);
-
-			// Note: EntityId will be set when the server replicates it back
-			// You might want local prediction in some cases
 		}
 	}
 }

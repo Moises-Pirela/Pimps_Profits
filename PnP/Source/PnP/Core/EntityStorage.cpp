@@ -34,8 +34,6 @@ void UEntityStorage::InitializeStorage()
 			if (!ComponentTypeIdMap.Contains(class_))
 			{
 				ComponentTypeIdMap.Add(class_, idCounter++);
-
-				ClockLog(FString("Loaded component type: ") + class_->GetName(), LOG_DEBUG);
 			}
 		}
 	}
@@ -64,10 +62,8 @@ void UEntityStorage::SyncComponentToECS(UPnPComponentBase* Component, int32 Enti
         
 	int32 ComponentTypeId = *ComponentTypeIdPtr;
     
-	// Make sure we're directly referencing the same object
 	Components[ComponentTypeId].Components[EntityId] = Component;
     
-	// Log for debugging
 	UE_LOG(LogTemp, Log, TEXT("Synced component %s for entity %d"), 
 		*ComponentClass->GetName(), EntityId);
 }

@@ -14,9 +14,10 @@ class PNP_API UPnPInventoryComponent : public UPnPComponentBase
 	GENERATED_BODY()
 
 public:
-	static constexpr int MAX_ITEMS = 10;
-
 	UPnPInventoryComponent();
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	int InventorySize;
 
 protected:
 	virtual void BeginPlay() override;
@@ -31,9 +32,15 @@ public:
 	UPROPERTY(BlueprintReadOnly, Replicated)
 	int CurrentEquippedIndex;
 
+	UPROPERTY(BlueprintReadOnly, Replicated)
+	int NextAvailableIndex;
+
 	UFUNCTION(Server, Reliable)
 	void ServerEquip(int slot, int entityId);
 
 	UFUNCTION(Server, Reliable)
 	void ServerAddEquippedItem(int slot, int entityId);
+
+	UFUNCTION(Server, Reliable)
+	void ServerRemoveEquippedItem(int slot, int entityId);
 };
