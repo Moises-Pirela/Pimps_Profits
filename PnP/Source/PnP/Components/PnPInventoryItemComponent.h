@@ -14,15 +14,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSoftObjectPtr<UInventoryItemConfig> ItemConfig;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Replicated)
-	int EntityOwnerId;
-
-	UFUNCTION(Server, Unreliable)
-	void ServerSetEntityOwnerId(int entityId);
-
-	UFUNCTION(BlueprintCallable)
-	bool HasOwner();
-
 protected:
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 };

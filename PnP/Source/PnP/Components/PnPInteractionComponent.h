@@ -27,20 +27,15 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction")
 	float m_interactionSphereRadius;
     
-	// Currently focused interactive object
 	UPROPERTY(Replicated)
-	int m_focusedInteractiveEntityId = -1;
+	TObjectPtr<UPnPInteractableComponent> focusedInteractable;
     
-	// Is interaction in progress
 	UPROPERTY(ReplicatedUsing = OnRep_InteractionInProgress)
 	bool bInteractionInProgress;
     
 	UFUNCTION()
 	void OnRep_InteractionInProgress();
     
-	// Trace for interactive objects
-	void PerformInteractionTrace();
-
 public:
 
 	UPROPERTY(BlueprintAssignable)
@@ -49,20 +44,13 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnInteractableEvent OnEndFocus;
 	
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-    
+	void PerformInteractionTrace(FVector pStartLocation, FVector pDirection);
+	
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UFUNCTION(Server, Reliable)
-	void ServerUpdateFocusedObject(int32 EntityId);
+	void ServerUpdateFocusedObject(UPnPInteractableComponent* pNewInteractable);
     
-	// Server RPC to handle interaction on server
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerBeginInteraction();
-    
-	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerEndInteraction();
-
-	UFUNCTION(Client, Reliable)
-	void ClientFocusedInteraction();
 };

@@ -27,7 +27,7 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UPROPERTY(BlueprintReadOnly, Replicated)
-	TArray<int> EquippedEntityIds;
+	TArray<TObjectPtr<AActor>> EquippedActors;
 
 	UPROPERTY(BlueprintReadOnly, Replicated)
 	int CurrentEquippedIndex;
@@ -39,7 +39,7 @@ public:
 	void ServerEquip(int slot, int entityId);
 
 	UFUNCTION(Server, Reliable)
-	void ServerAddEquippedItem(int slot, int entityId);
+	void ServerAddEquippedItem(int slot, AActor* itemActor);
 
 	UFUNCTION(Server, Reliable)
 	void ServerRemoveEquippedItem(int slot, int entityId);

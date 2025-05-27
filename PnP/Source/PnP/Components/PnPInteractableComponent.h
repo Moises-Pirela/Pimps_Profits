@@ -81,12 +81,12 @@ public:
     bool CanBeInteractedWith(AActor* InteractingActor) const;
     
     UFUNCTION(NetMulticast, Reliable, Category = "Interaction")
-    void MulticastInteractionStart(int interactingEntityId, int targetEntityId);
+    void MulticastInteractionStart(AActor* interactor);
     
     UFUNCTION(BlueprintPure, Category = "Interaction")
     FText GetInteractionText() const { return InteractionPrompt; }
     
-    UFUNCTION(Server, Unreliable, WithValidation)
+    UFUNCTION(Server, Reliable, WithValidation)
     void ServerAddInteraction(FInteractionRequest pRequest);
     
     // Replication setup

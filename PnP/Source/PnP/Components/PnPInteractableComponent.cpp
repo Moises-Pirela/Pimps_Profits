@@ -3,7 +3,6 @@
 
 #include "Components/CapsuleComponent.h"
 #include "Net/UnrealNetwork.h"
-#include "PnP/Core/EntitySubsystem.h"
 #include "PnP/Player/PnPPlayerCharacter.h"
 #include "PnP/Utils/Logger.h"
 
@@ -22,30 +21,26 @@ UPnPInteractableComponent::UPnPInteractableComponent()
 	SetIsReplicatedByDefault(true);
 }
 
-void UPnPInteractableComponent::MulticastInteractionStart_Implementation(int interactingEntityId, int targetEntityId)
+void UPnPInteractableComponent::MulticastInteractionStart_Implementation(AActor* interactor)
 {
-	//OnInteractionStarted.Broadcast(InteractingActor);
-	
-	UEntitySubsystem* entitySystem = GetWorld()->GetSubsystem<UEntitySubsystem>();
-	
 	if (InteractableType == INTERACTABLE_PICK_UP)
 	{
 		if (GetOwner()->HasAuthority())
 		{
-			auto inventoryComponent = entitySystem->GetComponent<UPnPInventoryComponent>(interactingEntityId);
-	
-			inventoryComponent->ServerAddEquippedItem(0, targetEntityId);	
+			auto inventoryComponent = interactor->GetComponentByClass<UPnPInventoryComponent>();
+		
+			inventoryComponent->ServerAddEquippedItem(0, GetOwner());	
 		}
 		
-		// auto pimpCharacter = Cast<APnPPlayerCharacter>(InteractingActor);
-		//
-		// auto capsule = GetOwner()->GetComponentByClass<UCapsuleComponent>();
-		//
-		// capsule->SetSimulatePhysics(false);
-		//
-		// FAttachmentTransformRules attachmentRules(EAttachmentRule::SnapToTarget, true);
-		//
-		// GetOwner()->AttachToComponent(pimpCharacter->GetMesh(), attachmentRules, FName("hand_rSocket"));
+		auto pimpCharacter = Cast<APnPPlayerCharacter>(interactor);
+		
+		auto capsule = GetOwner()->GetComponentByClass<UCapsuleComponent>();
+		
+		capsule->SetSimulatePhysics(false);
+		
+		FAttachmentTransformRules attachmentRules(EAttachmentRule::SnapToTarget, true);
+		
+		GetOwner()->AttachToComponent(pimpCharacter->GetMesh(), attachmentRules, FName("hand_rSocket"));
 	}
 	
 	else if (InteractableType == INTERACTABLE_USE)

@@ -6,14 +6,13 @@
 #include "PnPInteractableComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Net/UnrealNetwork.h"
-#include "PnP/Core/EntitySubsystem.h"
 #include "PnP/Utils/Logger.h"
 
 
 // Sets default values for this component's properties
 UPnPInteractionComponent::UPnPInteractionComponent()
 {
-	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.bCanEverTick = false;
 
 	SetIsReplicatedByDefault(true);
 }
@@ -29,103 +28,62 @@ void UPnPInteractionComponent::OnRep_InteractionInProgress()
 {
 }
 
-void UPnPInteractionComponent::PerformInteractionTrace()
+void UPnPInteractionComponent::PerformInteractionTrace(FVector pStartLocation, FVector pDirection)
 {
 	FHitResult hitResult;
 	FCollisionQueryParams TraceParams(FName(TEXT("LineTrace")), true, GetOwner());
 	TraceParams.bTraceComplex = false;
 	TraceParams.bReturnPhysicalMaterial = true;
 
-	FVector startLocation;
-	FRotator startRotation;
-	GetOwner()->GetActorEyesViewPoint(startLocation, startRotation);
-	FVector direction = startRotation.Vector();
-	const FVector endPoint = startLocation + (direction * m_interactionRange);
+	const FVector endPoint = pStartLocation + (pDirection * m_interactionRange);
 
 	bool bPersistent = false;
 	float LifeTime = 0.2f;
-	DrawDebugLine(GetWorld(), startLocation, endPoint, FColor::Green, bPersistent, LifeTime, 0, 1.0f);
+	DrawDebugLine(GetWorld(), pStartLocation, endPoint, FColor::Green, bPersistent, LifeTime, 0, 1.0f);
 
-	bool bHit = GetOwner()->GetWorld()->LineTraceSingleByChannel(hitResult, startLocation, endPoint,
+	bool bHit = GetOwner()->GetWorld()->LineTraceSingleByChannel(hitResult, pStartLocation, endPoint,
 	                                                             ECC_GameTraceChannel1, TraceParams);
 
+#if UE_EDITOR
 	DrawDebugSphere(GetWorld(), endPoint, 10.0f, 8, FColor::Yellow, bPersistent, LifeTime);
+#endif
 
-	auto entitySubsystem = GetWorld()->GetSubsystem<UEntitySubsystem>();
 
-	// No hit or lost focus
-	if (!bHit && m_focusedInteractiveEntityId != -1)
+	if (!bHit && focusedInteractable != nullptr)
 	{
-		// Local prediction
-		UPnPInteractableComponent* oldInteractable = entitySubsystem->GetComponent<UPnPInteractableComponent>(
-			m_focusedInteractiveEntityId);
+		OnEndFocus.Broadcast(focusedInteractable);
 
-		if (oldInteractable)
-		{
-			//oldInteractable->HandleFocusEnd(GetOwner());
-			OnEndFocus.Broadcast(oldInteractable);
-		}
+		focusedInteractable = nullptr;
 
-		int32 oldFocusId = m_focusedInteractiveEntityId;
-		m_focusedInteractiveEntityId = -1;
+		ServerUpdateFocusedObject(nullptr);
 
-		ServerUpdateFocusedObject(-1);
-		
 		return;
 	}
 
 	if (bHit)
 	{
+#if UE_EDITOR
 		DrawDebugSphere(GetWorld(), hitResult.ImpactPoint, 10.0f, 8, FColor::Red, bPersistent, LifeTime);
+#endif
 
 		AActor* hitActor = hitResult.GetActor();
-		auto hitUnrealEntity = hitActor->GetComponentByClass<UUnrealEntity>();
 
-		if (!hitUnrealEntity)
+		if (!hitActor)
 			return;
 
-		if (hitUnrealEntity->EntityId == m_focusedInteractiveEntityId)
-			return;
-
-		UPnPInteractableComponent* interactable = entitySubsystem->GetComponent<UPnPInteractableComponent>(
-			hitUnrealEntity->EntityId);
+		UPnPInteractableComponent* interactable = hitActor->GetComponentByClass<UPnPInteractableComponent>();
 
 		if (interactable && interactable->CanBeInteractedWith(GetOwner()))
 		{
-			// Handle old focus end locally (prediction)
-			if (m_focusedInteractiveEntityId != -1)
+			if (focusedInteractable != nullptr)
 			{
-				UPnPInteractableComponent* oldInteractable = entitySubsystem->GetComponent<UPnPInteractableComponent>(
-					m_focusedInteractiveEntityId);
-
-				if (oldInteractable)
-				{
-					//oldInteractable->HandleFocusEnd(GetOwner());
-					OnEndFocus.Broadcast(oldInteractable);
-				}
+				OnEndFocus.Broadcast(focusedInteractable);
 			}
 
-			int32 newFocusId = hitUnrealEntity->EntityId;
-			m_focusedInteractiveEntityId = newFocusId;
-			//interactable->HandleFocusBegin(GetOwner());
+			focusedInteractable = interactable;
 			OnBeginFocus.Broadcast(interactable);
-
-
-			ServerUpdateFocusedObject(newFocusId);
+			ServerUpdateFocusedObject(interactable);
 		}
-	}
-}
-
-void UPnPInteractionComponent::TickComponent(float delta_time, ELevelTick tick_type,
-                                             FActorComponentTickFunction* this_tick_function)
-{
-	Super::TickComponent(delta_time, tick_type, this_tick_function);
-
-	if ((GetOwnerRole() == ROLE_AutonomousProxy && IsOwnerLocallyControlled()) ||
-		(GetOwnerRole() == ROLE_Authority && (!IsOwnerLocallyControlled() || !GetWorld()->
-			IsNetMode(NM_DedicatedServer))))
-	{
-		PerformInteractionTrace();
 	}
 }
 
@@ -133,67 +91,30 @@ void UPnPInteractionComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProper
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(UPnPInteractionComponent, m_focusedInteractiveEntityId);
+	DOREPLIFETIME(UPnPInteractionComponent, focusedInteractable);
 }
 
-void UPnPInteractionComponent::ServerUpdateFocusedObject_Implementation(int32 EntityId)
+void UPnPInteractionComponent::ServerUpdateFocusedObject_Implementation(UPnPInteractableComponent* pNewInteractable)
 {
-	auto entitySubsystem = GetWorld()->GetSubsystem<UEntitySubsystem>();
-	UPnPInteractableComponent* interactable = entitySubsystem->GetComponent<UPnPInteractableComponent>(EntityId);
-
-	if (interactable && interactable->CanBeInteractedWith(GetOwner()))
+	if (pNewInteractable && pNewInteractable->CanBeInteractedWith(GetOwner()))
 	{
-		// Clear old focus 
-		if (m_focusedInteractiveEntityId != -1 && m_focusedInteractiveEntityId != EntityId)
+		if (focusedInteractable != nullptr)
 		{
-			UPnPInteractableComponent* oldInteractable =
-				entitySubsystem->GetComponent<UPnPInteractableComponent>(m_focusedInteractiveEntityId);
-
-			if (oldInteractable)
+			if (focusedInteractable)
 			{
 				//oldInteractable->HandleFocusEnd(GetOwner());
 			}
 		}
-
-		// Set new focus
-		m_focusedInteractiveEntityId = EntityId;
-		//interactable->HandleFocusBegin(GetOwner());
 	}
-	
-	ClockLog(FString::Printf(TEXT("focused entity %d"), m_focusedInteractiveEntityId), LOG_INFO, true, 1);
-	
-}
 
-void UPnPInteractionComponent::ClientFocusedInteraction_Implementation()
-{
-}
-
-void UPnPInteractionComponent::ServerEndInteraction_Implementation()
-{
-}
-
-bool UPnPInteractionComponent::ServerEndInteraction_Validate()
-{
-	return true;
+	focusedInteractable = pNewInteractable;
 }
 
 void UPnPInteractionComponent::ServerBeginInteraction_Implementation()
 {
-	if (m_focusedInteractiveEntityId == -1) return;
-
-	if (!GetOwner()->HasAuthority()) return;
-
-	auto entitySubsystem = GetWorld()->GetSubsystem<UEntitySubsystem>();
-
-	UPnPInteractableComponent* interactable = entitySubsystem->GetComponent<UPnPInteractableComponent>(m_focusedInteractiveEntityId);
-
-	if (interactable && interactable->CanBeInteractedWith(GetOwner()))
+	if (focusedInteractable && focusedInteractable->CanBeInteractedWith(GetOwner()))
 	{
-		FInteractionRequest request = FInteractionRequest();
-		auto entity = GetOwner()->GetComponentByClass<UUnrealEntity>();
-		request.interactorEntityId = entity->EntityId;
-		request.targetEntityId = m_focusedInteractiveEntityId;
-		interactable->ServerAddInteraction(request);
+		focusedInteractable->MulticastInteractionStart(GetOwner());
 	}
 }
 

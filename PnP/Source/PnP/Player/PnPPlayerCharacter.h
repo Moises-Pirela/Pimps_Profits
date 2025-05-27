@@ -11,7 +11,6 @@
 #include "PnP/Components/PnPCharacterStatsComponent.h"
 #include "PnP/Components/PnPInteractionComponent.h"
 #include "PnP/Components/PnPInventoryComponent.h"
-#include "PnP/Components/PnPNetworkIdentityComponent.h"
 #include "PnPPlayerCharacter.generated.h"
 
 UENUM(BlueprintType)
@@ -65,8 +64,6 @@ protected:
 	UPnPInventoryComponent* InventoryComponent;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PNP | Components", meta = (AllowPrivateAccess = "true"))
 	UPnPBusinessManagerComponent* BusinessComponent;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PNP | Components", meta = (AllowPrivateAccess = "true"))
-	UPnPNetworkIdentityComponent* NetworkComponent;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "PNP | Components", meta = (AllowPrivateAccess = "true"))
 	UPnPInteractionComponent* InteractionComponent;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))

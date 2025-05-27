@@ -20,17 +20,17 @@ void UPnPWeaponComponent::BeginPlay()
 	CurrentAmmoCount = MaxAmmoCount;
 }
 
-void UPnPWeaponComponent::ServerEquipWeapon_Implementation(UUnrealEntity* ownerEntity)
+void UPnPWeaponComponent::ServerEquipWeapon_Implementation(AActor* pOwnerActor)
 {
 	FTransform socketTransform;
-	OwningEntity = ownerEntity;
+	OwnerActor = pOwnerActor;
 }
 
 void UPnPWeaponComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(UPnPWeaponComponent, OwningEntity);
+	DOREPLIFETIME(UPnPWeaponComponent, OwnerActor);
 	DOREPLIFETIME(UPnPWeaponComponent, CurrentAmmoCount);
 	DOREPLIFETIME(UPnPWeaponComponent, MaxAmmoCount);
 }

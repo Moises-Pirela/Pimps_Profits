@@ -23,10 +23,11 @@ class PNP_API UPnPWeaponComponent : public UPnPComponentBase
 	GENERATED_BODY()
 
 public:
-	UPnPWeaponComponent();
 
-	UPROPERTY(BlueprintReadOnly, Replicated)
-	UUnrealEntity* OwningEntity;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Replicated)
+	AActor* OwnerActor;
+	
+	UPnPWeaponComponent();
 
 	UPROPERTY(BlueprintReadOnly, Replicated)
 	int CurrentAmmoCount;
@@ -56,7 +57,7 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UFUNCTION(Server, Reliable)
-	void ServerEquipWeapon(UUnrealEntity* ownerEntity);
+	void ServerEquipWeapon(AActor* pOwnerActor);
 
 	UFUNCTION(Server, Reliable)
 	void ServerReload();

@@ -19,7 +19,7 @@ void UPnPInventoryComponent::BeginPlay()
 	Super::BeginPlay();
 	for (int i = 0; i < InventorySize; i++)
 	{
-		EquippedEntityIds.Add(-1);
+		EquippedActors.Add(nullptr);
 	}
 	
 }
@@ -28,32 +28,32 @@ void UPnPInventoryComponent::GetLifetimeReplicatedProps(TArray<class FLifetimePr
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(UPnPInventoryComponent, EquippedEntityIds);
+	DOREPLIFETIME(UPnPInventoryComponent, EquippedActors);
 	DOREPLIFETIME(UPnPInventoryComponent, CurrentEquippedIndex);
 	DOREPLIFETIME(UPnPInventoryComponent, NextAvailableIndex);
 }
 
 void UPnPInventoryComponent::ServerRemoveEquippedItem_Implementation(int slot, int entityId)
 {
-	EquippedEntityIds[slot] = -1;
+	EquippedActors[slot] = nullptr;
 
 	NextAvailableIndex = slot;
 }
 
-void UPnPInventoryComponent::ServerAddEquippedItem_Implementation(int slot, int entityId)
+void UPnPInventoryComponent::ServerAddEquippedItem_Implementation(int slot, AActor* itemActor)
 {
-	if (EquippedEntityIds[NextAvailableIndex] != -1)
+	if (EquippedActors[NextAvailableIndex])
 	{
-		auto message = FString::Printf(TEXT("Equipped entity %d"), entityId);
+		auto message = FString::Printf(TEXT("Slot is occupied, inventory probably full"));
 		ClockLog(message, ELogLevel::LOG_DEBUG, true);
 		return;
 	}
 
-	EquippedEntityIds[NextAvailableIndex] = entityId;
+	EquippedActors[NextAvailableIndex] = itemActor;
 
-	for (int i = 0; i < EquippedEntityIds.Num(); i++)
+	for (int i = 0; i < EquippedActors.Num(); i++)
 	{
-		if (EquippedEntityIds[i] == -1)
+		if (!EquippedActors[i])
 		{
 			NextAvailableIndex = i;
 			break;
@@ -63,7 +63,7 @@ void UPnPInventoryComponent::ServerAddEquippedItem_Implementation(int slot, int 
 
 void UPnPInventoryComponent::ServerEquip_Implementation(int slot, int entityId)
 {
-	if (EquippedEntityIds[slot] != -1)
+	if (EquippedActors[slot])
 	{
 		auto message = FString::Printf(TEXT("Equipped entity %d"), entityId);
 		ClockLog(message, ELogLevel::LOG_DEBUG, true);

@@ -11,7 +11,6 @@
 #include "PnP/Components/PnPCharacterStatsComponent.h"
 #include "PnP/Components/PnPInteractionComponent.h"
 #include "PnP/Components/PnPInventoryComponent.h"
-#include "PnP/Components/PnPNetworkIdentityComponent.h"
 #include "PnP/Utils/Logger.h"
 
 
@@ -34,7 +33,6 @@ APnPPlayerCharacter::APnPPlayerCharacter()
 
 	StatsComponent = CreateDefaultSubobject<UPnPCharacterStatsComponent>(TEXT("StatsComponent"));
 	BusinessComponent = CreateDefaultSubobject<UPnPBusinessManagerComponent>(TEXT("BusinessComponent"));
-	NetworkComponent = CreateDefaultSubobject<UPnPNetworkIdentityComponent>(TEXT("NetworkComponent"));
 
 	MoveAction = ConstructorHelpers::FObjectFinder<UInputAction>(TEXT("/Game/_PNP/Gameplay/Input/CharacterInput/IA_Move.IA_Move")).Object;
 	LookAction = ConstructorHelpers::FObjectFinder<UInputAction>(TEXT("/Game/_PNP/Gameplay/Input/CharacterInput/IA_Look.IA_Look")).Object;
@@ -108,6 +106,10 @@ void APnPPlayerCharacter::Tick(const float pDeltaTime)
 			}	
 		}
 	}
+
+
+	if (IsLocallyControlled())
+		InteractionComponent->PerformInteractionTrace(FirstPersonCamera->GetComponentLocation(), FirstPersonCamera->GetForwardVector());
 }
 
 void APnPPlayerCharacter::Jump()
