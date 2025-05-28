@@ -31,16 +31,6 @@ void UPnPInteractableComponent::MulticastInteractionStart_Implementation(AActor*
 		
 			inventoryComponent->ServerAddEquippedItem(0, GetOwner());	
 		}
-		
-		auto pimpCharacter = Cast<APnPPlayerCharacter>(interactor);
-		
-		auto capsule = GetOwner()->GetComponentByClass<UCapsuleComponent>();
-		
-		capsule->SetSimulatePhysics(false);
-		
-		FAttachmentTransformRules attachmentRules(EAttachmentRule::SnapToTarget, true);
-		
-		GetOwner()->AttachToComponent(pimpCharacter->GetMesh(), attachmentRules, FName("hand_rSocket"));
 	}
 	
 	else if (InteractableType == INTERACTABLE_USE)

@@ -85,7 +85,7 @@ void APnPPlayerCharacter::Tick(const float pDeltaTime)
 			LastCameraRotation = smoothedRotation;
 		}
 
-		const float targetFOV = (CharacterAimState == AIM_FOCUSED) ? 75.0f : 120.0f;
+		const float targetFOV = (CharacterAimState == AIM_FOCUSED) ? 75.0f : 90.0f;
 
 		if (targetFOV != FirstPersonCamera->FieldOfView)
 		{

@@ -7,6 +7,8 @@
 #include "PnPInventoryComponent.generated.h"
 
 class UInventoryItemConfig;
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FInventoryUpdated, int32, Slot, UInventoryItemConfig*, ItemConfig);
+
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class PNP_API UPnPInventoryComponent : public UPnPComponentBase
@@ -25,6 +27,10 @@ protected:
 public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+	void HandleItemEquippedVisuals(int32 Slot, AActor* ItemActor);
+
+	UFUNCTION(Server, Reliable)
+	void ServerUnequipCurrent();
 
 	UPROPERTY(BlueprintReadOnly, Replicated)
 	TArray<TObjectPtr<AActor>> EquippedActors;
@@ -40,6 +46,16 @@ public:
 
 	UFUNCTION(Server, Reliable)
 	void ServerAddEquippedItem(int slot, AActor* itemActor);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastItemEquipped(int32 Slot, AActor* ItemActor);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastItemUnequipped(int32 pSlot);
+
+	UPROPERTY(BlueprintAssignable)
+	FInventoryUpdated OnInventoryUpdated;
+
 
 	UFUNCTION(Server, Reliable)
 	void ServerRemoveEquippedItem(int slot, int entityId);
