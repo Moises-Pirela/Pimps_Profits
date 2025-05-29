@@ -39,13 +39,13 @@ void UPnPInteractionComponent::PerformInteractionTrace(FVector pStartLocation, F
 
 	bool bPersistent = false;
 	float LifeTime = 0.2f;
-	DrawDebugLine(GetWorld(), pStartLocation, endPoint, FColor::Green, bPersistent, LifeTime, 0, 1.0f);
+	//DrawDebugLine(GetWorld(), pStartLocation, endPoint, FColor::Green, bPersistent, LifeTime, 0, 1.0f);
 
 	bool bHit = GetOwner()->GetWorld()->LineTraceSingleByChannel(hitResult, pStartLocation, endPoint,
 	                                                             ECC_GameTraceChannel1, TraceParams);
 
 #if UE_EDITOR
-	DrawDebugSphere(GetWorld(), endPoint, 10.0f, 8, FColor::Yellow, bPersistent, LifeTime);
+	//DrawDebugSphere(GetWorld(), endPoint, 10.0f, 8, FColor::Yellow, bPersistent, LifeTime);
 #endif
 
 
@@ -63,7 +63,7 @@ void UPnPInteractionComponent::PerformInteractionTrace(FVector pStartLocation, F
 	if (bHit)
 	{
 #if UE_EDITOR
-		DrawDebugSphere(GetWorld(), hitResult.ImpactPoint, 10.0f, 8, FColor::Red, bPersistent, LifeTime);
+		//DrawDebugSphere(GetWorld(), hitResult.ImpactPoint, 10.0f, 8, FColor::Red, bPersistent, LifeTime);
 #endif
 
 		AActor* hitActor = hitResult.GetActor();

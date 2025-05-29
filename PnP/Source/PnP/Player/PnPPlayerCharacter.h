@@ -52,6 +52,15 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, Replicated)
 	float CameraPitch;
+	
+	UPROPERTY(Config, EditAnywhere, BlueprintReadWrite)
+	float aimFOVRatio = 0.75f;
+
+	UPROPERTY(Config, EditAnywhere, BlueprintReadWrite)
+	float sprintFOVRatio = 1.25f;
+
+private:
+	float defaultFOV;
 
 protected:
 	virtual void BeginPlay() override;

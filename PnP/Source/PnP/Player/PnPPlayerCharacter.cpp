@@ -7,6 +7,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "PnP/PimpGameSettings.h"
 #include "PnP/Components/PnPBusinessManagerComponent.h"
 #include "PnP/Components/PnPCharacterStatsComponent.h"
 #include "PnP/Components/PnPInteractionComponent.h"
@@ -53,6 +54,8 @@ void APnPPlayerCharacter::BeginPlay()
 
 	InteractionComponent = GetComponentByClass<UPnPInteractionComponent>();
 	InventoryComponent = GetComponentByClass<UPnPInventoryComponent>();
+
+	defaultFOV = UPimpGameSettings::GetMyGameUserSettings()->FOV;
 	
 	Super::BeginPlay();
 }
@@ -85,7 +88,9 @@ void APnPPlayerCharacter::Tick(const float pDeltaTime)
 			LastCameraRotation = smoothedRotation;
 		}
 
-		const float targetFOV = (CharacterAimState == AIM_FOCUSED) ? 75.0f : 90.0f;
+		float targetFOV = (CharacterAimState == AIM_FOCUSED) ? defaultFOV * aimFOVRatio : defaultFOV;
+
+		targetFOV = GaitState == GAIT_SPRINT ? defaultFOV * sprintFOVRatio : targetFOV; 
 
 		if (targetFOV != FirstPersonCamera->FieldOfView)
 		{
