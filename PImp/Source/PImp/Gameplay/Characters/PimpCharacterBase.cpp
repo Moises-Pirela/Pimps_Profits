@@ -1,8 +1,11 @@
 #include "PimpCharacterBase.h"
 
+#include "PImp/Gameplay/Components/PimpMovementComponent.h"
+
 APimpCharacterBase::APimpCharacterBase()
 {
 	PrimaryActorTick.bCanEverTick = true;
+	PimpMovement = CreateDefaultSubobject<UPimpMovementComponent>(TEXT("PimpMovement"));
 }
 
 void APimpCharacterBase::BeginPlay()
@@ -13,10 +16,6 @@ void APimpCharacterBase::BeginPlay()
 void APimpCharacterBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	if (PimpMovement)
+		PimpMovement->UpdateRotation(DeltaTime);
 }
-
-void APimpCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-}
-
