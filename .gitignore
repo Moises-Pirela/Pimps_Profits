@@ -79,3 +79,16 @@ ProjectPimps/DerivedDataCache/*
 /PnP/Binaries
 /PnP/.idea
 PnP/.vsconfig
+/PnP/Content/__ExternalActors__
+/PnP/Content/__ExternalObjects__
+/PnP/DerivedDataCache
+*.user
+*.user
+/PImp/Binaries
+/PImp/Content/__ExternalActors__
+/PImp/Content/__ExternalObjects__
+/PnP/Content/__ExternalActors__
+/PImp/.idea
+/PImp/Intermediate
+/PImp/Saved
+/PImp/DerivedDataCache
